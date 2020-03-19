@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Show Bola</title>
+</head>
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+<body>
+	<div id="app">
+		<div>
+			<h1 class="header">
+				SHOW BOLA
+			</h1>
+		</div>
+
+		<div class="arena">
+			<div class="cardLayout">
+				<div class="item_1">
+					<h2>{{playerA.name}} has {{playerA.cards.length}} cards</h2>
+					<h2>Score: {{playerA.rank}} | Selected {{playerA.selectedCards.length}} cards</h2>
+				</div>
+				<div class="item_2">
+					<div class="playerCards">	
+						<div v-for="card in playerA.cards" :key="card.name" :card="card" 
+						@click="cardSelect(card, playerA)"
+						v-bind:class="[card.color === 'red' ? 'cardRed' : '']">
+						    <!-- <h5>{{card.name}}</h5> -->
+						   	<img width="150px" height="150px" viewBox="0 0 150 150" :src="'../public/media/svg/' + card.value + '_of_'+ card.suit + 's.svg'">
+						</div>
+					</div>
+					<div class="playerActions">
+						<div>
+							<button type="button" class="btn btn-lg btn-primary" @click="takeCard(playerA)">Take a card</button>
+						</div>
+						<div>
+							<button type="button" class="btn btn-lg btn-primary" @click="giveCard(playerA)">Give Cards</button>
+						</div>
+						<div>
+							<button type="button" class="btn btn-lg btn-danger" @click="show()">Show</button>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="deck">
+				<div class="deckTitle">
+					<h2>The Deck</h2>
+				</div>
+				<div class="deckAction">
+					<button type="button" class="btn btn-lg btn-primary" @click="shuffle">Shuffle</button>
+					<button type="button" class="btn btn-lg btn-primary" @click="giveCards">Give cards</button>
+				</div>
+				<div class="deckTable">
+					<div class="mainDeck">
+						<div>
+							<span>Main deck (click to take a card) ({{standardDeck.deck.length}})</span>
+						</div>
+						<div>
+							<img width="150px" height="150px" viewBox="0 0 150 150" src="../public/media/svg/red_joker.svg">
+						</div>	
+					</div>
+					<div class="recentCards">
+						<div class="item_1">
+							<span>recent cards given by Santhu</span>
+						</div>
+						<div class="item_2">
+							<img width="150px" height="150px" viewBox="0 0 150 150" src="../public/media/svg/red_joker.svg">
+						</div>
+					</div>
+					<div class="cardsBackToDeck">
+						<div class="item_1">
+							<span>Cards given back to deck</span>
+						</div>
+						<div class="item_2">
+							<div v-for="card in standardDeck.cardsGivenBack" :key="card.name" 
+							:card="card"
+							v-bind:class="[card.color === 'red' ? 'cardRed' : '']">
+						   	<img width="150px" height="150px" viewBox="0 0 150 150" :src="'../public/media/svg/' + card.value + '_of_'+ card.suit + 's.svg'">
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="cardLayout">
+				<div class="item_1">
+					<h2>{{playerB.name}} has {{playerB.cards.length}} cards</h2>
+					<h2>Score: {{playerB.rank}} | Selected {{playerB.selectedCards.length}} cards</h2>
+				</div>
+				<div class="item_2">
+					<div class="playerCards">	
+						<div v-for="card in playerB.cards" :key="card.name" :card="card" 
+						@click="cardSelect(card, playerB)"
+						v-bind:class="[card.color === 'red' ? 'cardRed' : '']">
+						   	<img width="150px" height="150px" viewBox="0 0 150 150" :src="'../public/media/svg/' + card.value + '_of_'+ card.suit + 's.svg'">
+						</div>
+					</div>
+					<div class="playerActions">
+						<div>
+							<button type="button" class="btn btn-lg btn-primary" @click="takeCard(playerB)">Take a card</button>
+						</div>
+						<div>
+							<button type="button" class="btn btn-lg btn-primary" @click="giveCard(playerB)">Give Cards</button>
+						</div>
+						<div>
+							<button type="button" class="btn btn-lg btn-danger" @click="show()">Show</button>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</body>
+	<style type="text/css">
+		body{
+			background: green;
+			font-family: cursive;
+		}
+		.arena{
+			display: grid;
+			grid-template-rows: 0fr 1fr 0fr;
+		}
+		.cardLayout{
+			display: grid;
+			grid-template-rows: 1fr 2fr;
+		}
+
+		.deckTitle{
+			text-align: center;
+		}
+
+		.deckAction{
+			text-align: center;
+		}
+
+		.cardLayout .item_2{
+			display: grid;
+			grid-template-columns: 8fr 1fr;
+		}
+
+		.playerCards{
+			display: grid;
+			grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
+		}
+		.playerActions{
+			display: grid;
+			grid-template-rows: 1fr 1fr 1fr;
+		}
+
+		.deck{
+			display: grid;
+			grid-template-rows: 1fr 1fr 2fr;
+		}
+		.deckTable{
+			display: grid;
+			grid-template-columns: 1fr 1fr 1fr;
+		}
+
+		.cardRed{
+			color: red;
+		}
+		.header{
+			text-align: center;
+		}
+		.cardsBackToDeck, .recentCards{
+			display: grid,
+			grid-template-rows: 1fr 1fr;
+		}
+		.cardsBackToDeck .item_2, .recentCards .item_2{
+			display: grid,
+			grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+		}
+	</style>
+	<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+	<script type="text/javascript" src="../public/js/test.js"></script>
+<!-- 	<script type="text/javascript" src="./public/js/game.js"></script> -->
+</html>
