@@ -1,0 +1,28 @@
+{
+  "name": "show-bola",
+  "version": "1.0.0",
+  "description": "A card game.",
+  "main": "app.js",
+  "dependencies": {
+    "express": "^4.17.1"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.2"
+  },
+  "scripts": {
+    "dev": "nodemon app"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/akshayreddy/show-bola.git"
+  },
+  "keywords": [
+    "card"
+  ],
+  "author": "Akshay Reddy",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/akshayreddy/show-bola/issues"
+  },
+  "homepage": "https://github.com/akshayreddy/show-bola#readme"
+}
