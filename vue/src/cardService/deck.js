@@ -1,9 +1,9 @@
-import {Card} from "./card.js";
+const Card = require('./card');
 
-export class StandardDeck {
-	constructor(args) {
+class StandardDeck {
+	constructor() {
 		this.suits = ["spade", "diamond", "club", "heart"];
-		this.values = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"];
+		this.values = ["ace", "2", "3", "4", "5", "6", "7", "8", "9", "10", "jack", "queen", "king"];
 		this.deck = this.buildDeck();
 		this.cardsGivenBack = [];
 	}
@@ -25,9 +25,9 @@ export class StandardDeck {
 	}
 
 	setRank(value){
-		if(value === 'J' | value === 'Q' | value === 'K'){
+		if(value === 'jack' | value === 'queen' | value === 'king'){
 			return 10;
-		} else if(value === 'A'){
+		} else if(value === 'ace'){
 			return 1;
 		} else {
 			return value;
@@ -68,3 +68,4 @@ export class StandardDeck {
 	}
 }
 
+module.exports = StandardDeck;

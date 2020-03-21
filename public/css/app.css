@@ -1,0 +1,65 @@
+
+body{
+  background: green;
+  font-family: cursive;
+}
+
+.arena{
+  display: grid;
+  grid-template-rows: 0fr 1fr 0fr;
+}
+.cardLayout{
+  display: grid;
+  grid-template-rows: 1fr 2fr;
+}
+
+.deckTitle{
+  text-align: center;
+}
+
+.deckAction{
+  text-align: center;
+}
+
+.cardLayout .item_2{
+  display: grid;
+  grid-template-columns: 8fr 1fr;
+}
+
+.playerCards{
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
+}
+
+.playerActions{
+  display: grid;
+  grid-template-rows: 1fr 1fr 1fr;
+}
+
+.deck{
+  display: grid;
+  grid-template-rows: 1fr 1fr 2fr;
+}
+
+.deckTable{
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+}
+
+.cardRed{
+  color: red;
+}
+
+.header{
+  text-align: center;
+}
+
+.cardsBackToDeck, .recentCards{
+  display: grid,
+  grid-template-rows: 1fr 1fr;
+}
+
+.cardsBackToDeck .item_2, .recentCards .item_2{
+  display: grid,
+  grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+}

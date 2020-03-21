@@ -1,6 +1,5 @@
 
-
-export class Player {
+class Player {
 	constructor(playerArgs){
 		this.name = playerArgs.name;
 		this.cards = [];
@@ -9,7 +8,6 @@ export class Player {
 	}
 
 	rankCount(){
-		let rankCount = 0;
 		this.cards.forEach(card => {
 			this.rank = this.rank + card.rank; 
 		});
@@ -23,3 +21,5 @@ export class Player {
 
 	}
 }
+
+module.exports = Player;

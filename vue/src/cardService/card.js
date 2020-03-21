@@ -1,5 +1,5 @@
 
-export class Card {
+class Card {
 	constructor(cardArgs) {
 		this.suit = cardArgs.suit;
 		this.value = cardArgs.value;
@@ -12,3 +12,5 @@ export class Card {
 		return this.value + " of " + this.suit + "s";
 	}
 }
+
+module.exports = Card;
