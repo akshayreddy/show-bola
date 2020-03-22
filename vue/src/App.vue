@@ -241,6 +241,10 @@ export default {
       cardSelect(card, player){
         if(!player.selectedCards.includes(card)){
           player.selectedCards.push(card);
+          player.runRules();
+          console.log("isNumberInSequenceRule", player.isNumberInSequenceRule);
+          console.log("isColorSuitAndOrderRule", player.isColorSuitAndOrderRule);
+          console.log("passedAllRules", player.passedAllRules);
         }
       },
       clearSelectedCards(player){

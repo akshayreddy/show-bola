@@ -5,6 +5,7 @@ class Card {
 		this.value = cardArgs.value;
 		this.name = this.fullname();
 		this.color = cardArgs.color;
+		this.enum = cardArgs.enum;
 		this.rank = parseInt(cardArgs.rank);
 	}
 

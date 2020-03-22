@@ -17,11 +17,26 @@ class StandardDeck {
 					value: value,
 					rank: this.setRank(value),
 					color: this.setColor(suit),
+					enum: this.setEnum(value),
 				}
 				deck.push(new Card(cardArgs));
-			})
+			});
 		});
 		return deck;
+	}
+
+	setEnum(value){
+		if(value === 'jack'){
+			return 11;
+		} else if(value === 'queen'){
+			return 12
+		} else if(value === 'king'){
+			return 13
+		}else if(value === 'ace'){
+			return 1;
+		} else {
+			return parseInt(value);
+		}
 	}
 
 	setRank(value){
