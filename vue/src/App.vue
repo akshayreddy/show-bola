@@ -1,61 +1,77 @@
 <template>
-  <div id="app">
+  <div id="app" class="card">
     <div class="arena">
       <div class="cardLayout">
         <div class="item_1">
-          <h2>{{playerA.name}} has {{playerA.cards.length}} cards</h2>
-          <h2>Score: {{playerA.rank}} | Selected {{playerA.selectedCards.length}} cards</h2>
+          <div>
+            <h4>{{playerA.name}}</h4>
+          </div>
+          <div>
+            <h4>Score: {{playerA.rank}} | Cards: {{playerA.cards.length}} | Selected {{playerA.selectedCards.length}} cards</h4>
+          </div>
         </div>
         <div class="item_2">
           <div class="playerCards"> 
             <div v-for="card in playerA.cards" :key="card.name" :card="card" 
             @click="cardSelect(card, playerA)"
             v-bind:class="[card.color === 'red' ? 'cardRed' : '']">
-                <!-- <h5>{{card.name}}</h5> -->
                 <img width="150px" height="150px" viewBox="0 0 150 150" :src="'./media/svg/' + card.value + '_of_'+ card.suit + 's.svg'">
             </div>
           </div>
           <div class="playerActions">
             <div>
-              <button type="button" class="btn btn-lg btn-primary" @click="takeCard(playerA)">Take a card</button>
+              <button type="button" class="btn btn-primary" @click="takeOpenCard(playerB)">Take open card</button>
             </div>
             <div>
-              <button type="button" class="btn btn-lg btn-primary" @click="giveCard(playerA)">Give Cards</button>
+              <button type="button" class="btn btn-primary" @click="takeCard(playerA)">Take deck card</button>
             </div>
             <div>
-              <button type="button" class="btn btn-lg btn-danger" @click="show()">Show</button>
+              <button type="button" class="btn btn-primary" @click="giveCard(playerA)">Give Cards</button>
+            </div>
+            <div>
+              <button type="button" class="btn btn-danger" @click="show()">Show</button>
             </div>
           </div>
         </div>
       </div>
       <div class="deck">
-        <div class="deckTitle">
-          <h2>The Deck</h2>
-        </div>
-        <div class="deckAction">
-          <button type="button" class="btn btn-lg btn-primary" @click="shuffle">Shuffle</button>
-          <button type="button" class="btn btn-lg btn-primary" @click="giveCards">Give cards</button>
+        <div class="deckHeader">
+          <div class="cardTitle">
+            <h4>The Deck</h4>
+          </div>
+          <div class="deckAction">
+            <div>
+              <button type="button" class="btn btn-primary" v-if="shouldGiveCards" @click="giveCards">Give cards</button>
+            </div>
+            <div>
+              <button type="button" class="btn btn-primary" @click="shuffle">Shuffle</button>
+            </div>
+          </div>
         </div>
         <div class="deckTable">
           <div class="mainDeck">
             <div>
-              <span>Main deck (click to take a card) ({{standardDeck.deck.length}})</span>
+              <span>Main deck ({{standardDeck.deck.length}} cards)</span>
             </div>
             <div>
-<!--               <img width="150px" height="150px" viewBox="0 0 150 150" src="./media/svg/red_joker.svg"> -->
+              <img width="150px" height="150px" viewBox="0 0 150 150" :src="'./media/svg/deck_card.svg'">
             </div>  
           </div>
-          <div class="recentCards">
+          <div class="cardsByOpponent">
             <div class="item_1">
-              <span>recent cards given by Santhu</span>
+              <span>Open card <span v-if="openCardSelected">selected</span></span>
             </div>
             <div class="item_2">
-<!--               <img width="150px" height="150px" viewBox="0 0 150 150" src="./media/svg/red_joker.svg"> -->
+            <div v-for="card in openCards" :key="card.name" :card="card"
+            @click="selectOpenCard"
+            v-bind:class="[card.color === 'red' ? 'cardRed' : '']">
+                <img width="150px" height="150px" viewBox="0 0 150 150" :src="'./media/svg/' + card.value + '_of_'+ card.suit + 's.svg'">
+            </div>
             </div>
           </div>
           <div class="cardsBackToDeck">
             <div class="item_1">
-              <span>Cards given back to deck</span>
+              <span>Recent cards given back</span>
             </div>
             <div class="item_2">
               <div v-for="card in standardDeck.cardsGivenBack" :key="card.name" 
@@ -69,8 +85,12 @@
       </div>
       <div class="cardLayout">
         <div class="item_1">
-          <h2>{{playerB.name}} has {{playerB.cards.length}} cards</h2>
-          <h2>Score: {{playerB.rank}} | Selected {{playerB.selectedCards.length}} cards</h2>
+          <div class="cardTitle">
+            <h4>{{playerB.name}}</h4>
+          </div>
+          <div>
+            <h4>Score: {{playerB.rank}} | cards: {{playerB.cards.length}} | Selected {{playerB.selectedCards.length}} cards</h4>
+          </div>
         </div>
         <div class="item_2">
           <div class="playerCards"> 
@@ -82,17 +102,23 @@
           </div>
           <div class="playerActions">
             <div>
-              <button type="button" class="btn btn-lg btn-primary" @click="takeCard(playerB)">Take a card</button>
+              <button type="button" class="btn btn-primary" @click="takeOpenCard(playerB)">Take open card</button>
             </div>
             <div>
-              <button type="button" class="btn btn-lg btn-primary" @click="giveCard(playerB)">Give Cards</button>
+              <button type="button" class="btn btn-primary" @click="takeCard(playerB)">Take deck card</button>
             </div>
             <div>
-              <button type="button" class="btn btn-lg btn-danger" @click="show()">Show</button>
+              <button type="button" class="btn btn-primary" @click="giveCard(playerB)">Give Cards</button>
+            </div>
+            <div>
+              <button type="button" class="btn btn-danger" @click="show()">Show</button>
             </div>
           </div>
         </div>
       </div>
+    </div>
+    <div class="leaderBoard">
+      <span>Leader board</span>
     </div>
   </div>
 </template>
@@ -129,6 +155,10 @@ export default {
       playerB: playerB,
       cardSelectedByPlayerA: playerA.selectedCards,
       cardSelectedByPlayerB: playerA.selectedCards,
+      shouldGiveCards: true,
+      openCards: [],
+      currentPlayer: playerA,
+      openCardSelected: false,
     };
   },
   methods: {
@@ -143,6 +173,16 @@ export default {
         }
         playerA.rankCount();
         playerB.rankCount();
+        this.openCards.push(standardDeck.deck.pop());
+        this.shouldGiveCards = false;
+      },
+      selectOpenCard(card){
+        this.openCardSelected = card;
+      },
+      takeOpenCard(){
+        if(this.openCards > 1){
+          console.log('')
+        }
       },
       groupByColor(){
 
@@ -180,14 +220,3 @@ export default {
     }
 }
 </script>
-
-<style>
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
-}
-</style>
