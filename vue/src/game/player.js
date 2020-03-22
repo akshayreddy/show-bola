@@ -5,6 +5,9 @@ class Player {
 		this.cards = [];
 		this.rank = 0;
 		this.selectedCards = [];
+		this.message = '';
+		this.hasTakenCards = false;
+		this.hasGivenCards = false;
 	}
 
 	rankCount(){

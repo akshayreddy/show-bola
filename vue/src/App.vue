@@ -3,11 +3,23 @@
     <div class="arena">
       <div class="cardLayout">
         <div class="item_1">
-          <div>
+          <div class="cardTitle">
             <h4>{{playerA.name}}</h4>
           </div>
           <div>
-            <h4>Score: {{playerA.rank}} | Cards: {{playerA.cards.length}} | Selected {{playerA.selectedCards.length}} cards</h4>
+            <h4>
+              <span>Score: {{playerA.rank}}</span> |
+              <span>Cards: {{playerA.cards.length}}</span> |
+              <span>Selected {{playerA.selectedCards.length}} cards 
+                <button v-if="playerA.selectedCards.length > 0" 
+                  @click=clearSelectedCards(playerA)
+                  class="btn btn-primary btn-sm">clear
+                </button>
+              </span>
+            </h4>
+          </div>
+          <div>
+            <span>{{ playerA.message }}</span>
           </div>
         </div>
         <div class="item_2">
@@ -20,13 +32,13 @@
           </div>
           <div class="playerActions">
             <div>
-              <button type="button" class="btn btn-primary" @click="takeOpenCard(playerB)">Take open card</button>
+              <button type="button" v-if="playerA.hasTakenCards === false" class="btn btn-primary" @click="takeOpenCard(playerA)">Take open card</button>
             </div>
             <div>
-              <button type="button" class="btn btn-primary" @click="takeCard(playerA)">Take deck card</button>
+              <button type="button" v-if="playerA.hasTakenCards === false" class="btn btn-primary" @click="takeCardFromDeck(playerA)">Take deck card</button>
             </div>
             <div>
-              <button type="button" class="btn btn-primary" @click="giveCard(playerA)">Give Cards</button>
+              <button type="button" v-if="playerA.hasGivenCards === false" class="btn btn-primary" @click="giveCard(playerA)">Give Cards</button>
             </div>
             <div>
               <button type="button" class="btn btn-danger" @click="show()">Show</button>
@@ -59,11 +71,11 @@
           </div>
           <div class="cardsByOpponent">
             <div class="item_1">
-              <span>Open card <span v-if="openCardSelected">selected</span></span>
+              <span>Open card <span v-if="isCardSelected">selected</span></span>
             </div>
             <div class="item_2">
             <div v-for="card in openCards" :key="card.name" :card="card"
-            @click="selectOpenCard"
+            @click="selectOpenCard(card)"
             v-bind:class="[card.color === 'red' ? 'cardRed' : '']">
                 <img width="150px" height="150px" viewBox="0 0 150 150" :src="'./media/svg/' + card.value + '_of_'+ card.suit + 's.svg'">
             </div>
@@ -89,7 +101,19 @@
             <h4>{{playerB.name}}</h4>
           </div>
           <div>
-            <h4>Score: {{playerB.rank}} | cards: {{playerB.cards.length}} | Selected {{playerB.selectedCards.length}} cards</h4>
+            <h4>
+              <span>Score: {{playerB.rank}}</span> |
+              <span>Cards: {{playerB.cards.length}}</span> |
+              <span>Selected {{playerB.selectedCards.length}} cards 
+                <button v-if="playerB.selectedCards.length > 0" 
+                  @click=clearSelectedCards(playerB)
+                  class="btn btn-primary btn-sm">clear
+                </button>
+              </span>
+            </h4>
+          </div>
+          <div>
+            <span>{{ playerB.message }}</span>
           </div>
         </div>
         <div class="item_2">
@@ -102,13 +126,13 @@
           </div>
           <div class="playerActions">
             <div>
-              <button type="button" class="btn btn-primary" @click="takeOpenCard(playerB)">Take open card</button>
+              <button type="button" v-if="playerB.hasTakenCards === false" class="btn btn-primary" @click="takeOpenCard(playerB)">Take open card</button>
             </div>
             <div>
-              <button type="button" class="btn btn-primary" @click="takeCard(playerB)">Take deck card</button>
+              <button type="button" v-if="playerB.hasTakenCards === false" class="btn btn-primary" @click="takeCardFromDeck(playerB)">Take deck card</button>
             </div>
             <div>
-              <button type="button" class="btn btn-primary" @click="giveCard(playerB)">Give Cards</button>
+              <button type="button" v-if="playerB.hasGivenCards === false" class="btn btn-primary" @click="giveCard(playerB)">Give Cards</button>
             </div>
             <div>
               <button type="button" class="btn btn-danger" @click="show()">Show</button>
@@ -154,11 +178,12 @@ export default {
       playerA: playerA,
       playerB: playerB,
       cardSelectedByPlayerA: playerA.selectedCards,
-      cardSelectedByPlayerB: playerA.selectedCards,
+      cardSelectedByPlayerB: playerB.selectedCards,
       shouldGiveCards: true,
       openCards: [],
       currentPlayer: playerA,
-      openCardSelected: false,
+      isCardSelected: false,
+      openCardSelected: {},
     };
   },
   methods: {
@@ -178,10 +203,17 @@ export default {
       },
       selectOpenCard(card){
         this.openCardSelected = card;
+        this.isCardSelected = true;
       },
-      takeOpenCard(){
-        if(this.openCards > 1){
-          console.log('')
+      takeOpenCard(player){
+        if(this.isCardSelected === true){
+          player.cards.push(this.openCardSelected);
+          this.openCards = [];
+          this.isCardSelected = false;
+          player.hasTakenCards = true;
+          player.message = "Give card / cards now";
+        } else if(this.isCardSelected === false){
+          player.message = "Select the open card";
         }
       },
       groupByColor(){
@@ -190,10 +222,12 @@ export default {
       groupBySequence(){
 
       },
-      takeCard(player){
+      takeCardFromDeck(player){
         let card = standardDeck.deck.pop()
         player.cards.push(card);
         player.rank = player.rank + card.rank;
+        player.hasTakenCards = true;
+        player.message = "Give card / cards now";
       },
       giveCard(player){
         let selectedCardsNumber = player.selectedCards.length;
@@ -205,15 +239,20 @@ export default {
         }
       },
       cardSelect(card, player){
-        player.selectedCards.push(card);
+        if(!player.selectedCards.includes(card)){
+          player.selectedCards.push(card);
+        }
+      },
+      clearSelectedCards(player){
+        player.selectedCards = [];
       },
       show(){
         let rankA = this.playerA.rank;
         let rankB = this.playerB.rank;
         if(rankA < rankB){
-          alert(this.playerA.name + "Won!!");
+          alert(this.playerA.name + " Won!!");
         }else{
-          alert(this.playerB.name + "Won!!");
+          alert(this.playerB.name + " Won!!");
         }
         
       }
