@@ -4,7 +4,7 @@
       <div class="cardLayout">
         <div class="item_1">
           <div class="cardTitle">
-            <h4>{{playerA.name}}</h4>
+            <h4>{{playerA.name}}<span v-if="currentPlayer === playerA">, your turn</span> </h4>
           </div>
           <div>
             <h4>
@@ -30,7 +30,7 @@
                 <img width="150px" height="150px" viewBox="0 0 150 150" :src="'./media/svg/' + card.value + '_of_'+ card.suit + 's.svg'">
             </div>
           </div>
-          <div class="playerActions">
+          <div class="playerActions" v-show="currentPlayer === playerA">
             <div>
               <button type="button" v-if="playerA.hasTakenCards === false" class="btn btn-primary" @click="takeOpenCard(playerA)">Take open card</button>
             </div>
@@ -38,7 +38,7 @@
               <button type="button" v-if="playerA.hasTakenCards === false" class="btn btn-primary" @click="takeCardFromDeck(playerA)">Take deck card</button>
             </div>
             <div>
-              <button type="button" v-if="playerA.hasGivenCards === false" class="btn btn-primary" @click="giveCard(playerA)">Give Cards</button>
+              <button type="button" v-if="playerA.showGiveCard === true" class="btn btn-primary" @click="giveCard(playerA)">Give Cards</button>
             </div>
             <div>
               <button type="button" class="btn btn-danger" @click="show()">Show</button>
@@ -77,7 +77,7 @@
             <div v-for="card in openCards" :key="card.name" :card="card"
             @click="selectOpenCard(card)"
             v-bind:class="[card.color === 'red' ? 'cardRed' : '']">
-                <img width="150px" height="150px" viewBox="0 0 150 150" :src="'./media/svg/' + card.value + '_of_'+ card.suit + 's.svg'">
+                <img width="100px" height="100px" viewBox="0 0 100 100" :src="'./media/svg/' + card.value + '_of_'+ card.suit + 's.svg'">
             </div>
             </div>
           </div>
@@ -86,7 +86,7 @@
               <span>Recent cards given back</span>
             </div>
             <div class="item_2">
-              <div v-for="card in standardDeck.cardsGivenBack" :key="card.name" 
+              <div v-for="card in standardDeck.cardsGivenBack.slice(-3)" :key="card.name" 
               :card="card"
               v-bind:class="[card.color === 'red' ? 'cardRed' : '']">
                 <img width="150px" height="150px" viewBox="0 0 150 150" :src="'./media/svg/' + card.value + '_of_'+ card.suit + 's.svg'">
@@ -98,7 +98,7 @@
       <div class="cardLayout">
         <div class="item_1">
           <div class="cardTitle">
-            <h4>{{playerB.name}}</h4>
+            <h4>{{playerB.name}}<span v-if="currentPlayer === playerB">, your turn</span></h4>
           </div>
           <div>
             <h4>
@@ -124,7 +124,7 @@
                 <img width="150px" height="150px" viewBox="0 0 150 150" :src="'./media/svg/' + card.value + '_of_'+ card.suit + 's.svg'">
             </div>
           </div>
-          <div class="playerActions">
+          <div class="playerActions" span v-show="currentPlayer === playerB">
             <div>
               <button type="button" v-if="playerB.hasTakenCards === false" class="btn btn-primary" @click="takeOpenCard(playerB)">Take open card</button>
             </div>
@@ -132,7 +132,7 @@
               <button type="button" v-if="playerB.hasTakenCards === false" class="btn btn-primary" @click="takeCardFromDeck(playerB)">Take deck card</button>
             </div>
             <div>
-              <button type="button" v-if="playerB.hasGivenCards === false" class="btn btn-primary" @click="giveCard(playerB)">Give Cards</button>
+              <button type="button" v-if="playerB.showGiveCard === true" class="btn btn-primary" @click="giveCard(playerB)">Give Cards</button>
             </div>
             <div>
               <button type="button" class="btn btn-danger" @click="show()">Show</button>
@@ -231,24 +231,45 @@ export default {
       },
       giveCard(player){
         let selectedCardsNumber = player.selectedCards.length;
+        if(selectedCardsNumber === 0){
+          player.message = "Select the cards";
+          return;
+        }
+
+        this.openCards = [];
         for (let iteration = 0; iteration < selectedCardsNumber; iteration++) {
           let card = player.selectedCards.pop();
           standardDeck.cardsGivenBack.push(card);
+          this.openCards.push(card);
           player.cards.splice(player.cards.indexOf(card), 1);
           player.rank = player.rank - card.rank;
         }
+
+        player.hasTakenCards = false;
+        if(player === this.playerA){
+          this.currentPlayer = this.playerB;
+        }else{
+          this.currentPlayer = this.playerA;
+        }
+        
       },
       cardSelect(card, player){
         if(!player.selectedCards.includes(card)){
           player.selectedCards.push(card);
           player.runRules();
-          console.log("isNumberInSequenceRule", player.isNumberInSequenceRule);
-          console.log("isColorSuitAndOrderRule", player.isColorSuitAndOrderRule);
-          console.log("passedAllRules", player.passedAllRules);
+          if(player.isNumberInSequenceRule || player.isColorSuitAndOrderRule){
+            player.message = "You can put these cards";
+            player.showGiveCard = true;
+          }else{
+            player.message = "You cannot put these cards";
+            player.showGiveCard = false;
+          }
         }
       },
       clearSelectedCards(player){
         player.selectedCards = [];
+        player.message = "";
+        player.showGiveCard = true;
       },
       show(){
         let rankA = this.playerA.rank;

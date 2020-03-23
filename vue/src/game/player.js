@@ -5,25 +5,22 @@ class Player {
 		this.cards = [];
 		this.rank = 0;
 		this.selectedCards = [];
-		this.message = '';
+		this.message = 'take open card / give card(s)';
 		this.hasTakenCards = false;
-		this.hasGivenCards = false;
+		this.showGiveCard = true;
 		this.isNumberInSequenceRule = false;
 		this.isColorSuitAndOrderRule = false;
-		this.passedAllRules = this.passedAllRules();
+		this.canGiveCards = false;
 	}
 
 	rankCount(){
 		this.cards.forEach(card => {
-			this.rank = this.rank + card.rank; 
+			this.rank = this.rank + card.rank;
 		});
 	}
 
-	passedAllRules(){
-		return (this.isNumberInSequenceRule || this.isColorSuitAndOrderRule);
-	}
-
 	runRules(){
+		console.log('runRules');
 		this.isNumberInSequenceRule = this.sameNumberSequence();
 		this.isColorSuitAndOrderRule = this.sameColorSuitAndOrder();
 	}
@@ -59,10 +56,6 @@ class Player {
 		let sameSuit = this.sameSuitSequence();
 		let inOrder = this.numbersInOrder();
 
-		console.log('sameColor', sameColor);
-		console.log('sameSuit', sameSuit);
-		console.log('inOrder', inOrder);
-		
 		return (sameColor && sameSuit && inOrder)
 	}
 
