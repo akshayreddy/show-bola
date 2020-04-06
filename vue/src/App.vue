@@ -77,7 +77,7 @@
             <div v-for="card in openCards" :key="card.name" :card="card"
             @click="selectOpenCard(card)"
             v-bind:class="[card.color === 'red' ? 'cardRed' : '']">
-                <img width="100px" height="100px" viewBox="0 0 100 100" :src="'./media/svg/' + card.value + '_of_'+ card.suit + 's.svg'">
+                <img width="150px" height="150px" viewBox="0 0 150 150" :src="'./media/svg/' + card.value + '_of_'+ card.suit + 's.svg'">
             </div>
             </div>
           </div>
@@ -215,12 +215,6 @@ export default {
         } else if(this.isCardSelected === false){
           player.message = "Select the open card";
         }
-      },
-      groupByColor(){
-
-      },
-      groupBySequence(){
-
       },
       takeCardFromDeck(player){
         let card = standardDeck.deck.pop()
