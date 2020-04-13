@@ -223,11 +223,33 @@ export default {
         player.hasTakenCards = true;
         player.message = "Give card / cards now";
       },
+      canPlayerSkip(openCards, selectedCards){
+        let result = false;
+        openCards.some(openCard => {
+          selectedCards.some(selectedCard => {
+            if(openCard.value == selectedCard.value){
+              result = true;
+            }
+          });
+        });
+        return result;
+      },
       giveCard(player){
         let selectedCardsNumber = player.selectedCards.length;
+
+        //check if player has selected the cards
         if(selectedCardsNumber === 0){
           player.message = "Select the cards";
           return;
+        }
+
+        // check if the player has taken the cards before
+        // if player has not taken card, check if the turn can be skipped
+        if(player.hasTakenCards === false){
+          if(this.canPlayerSkip(this.openCards, player.selectedCards) === false){
+            player.message = "No matching open cards. Cannot skip!";
+            return;
+          }
         }
 
         this.openCards = [];
@@ -240,6 +262,7 @@ export default {
         }
 
         player.hasTakenCards = false;
+        player.message = "";
         if(player === this.playerA){
           this.currentPlayer = this.playerB;
         }else{
