@@ -3,17 +3,12 @@ A fun card game.
 
 # Vue
 
-## Vue app setup
+## In the Vue folder
 ```
 npm install
 ```
 
-### Run the vue app for development
-```
-npm run serve
-```
-
-### Build the vue app
+### Build the client files
 ```
 npm run build
 ```

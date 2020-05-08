@@ -1,24 +1,72 @@
 
 body{
-  background: green;
+  background: white;
   font-family: cursive;
+  color: yellow;
+}
+
+.main{
+  display: grid;
+  grid-template-rows: 1fr 16fr;
+}
+
+#app{
+  display: grid;
+  grid-template-columns: 4fr 1fr;
+  grid-column-gap: 12px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 .arena{
   display: grid;
-  grid-template-rows: 0fr 1fr 0fr;
+  grid-template-rows: 1fr 1fr 1fr;
+  width: 98%;
+  justify-self: center;
+  grid-row-gap: 10px;
 }
+
+.notification{
+  background: #233659;
+  border-radius: 14px;
+}
+
+.leaderBoard{
+  background: #233659;
+  border-radius: 14px;
+  width: 94%;
+  justify-self: center;
+  text-align: center;
+}
+
 .cardLayout{
   display: grid;
   grid-template-rows: 1fr 2fr;
+  background: #233659;
+  border-radius: 14px;
+  text-align: center;
+  box-shadow: 5px 5px #5d6677;
 }
 
-.deckTitle{
+.deckHeader{
+  display: grid;
+  grid-template-columns: 4fr 1fr;
   text-align: center;
+}
+
+.cardTitle{
+  text-align: left;
 }
 
 .deckAction{
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   text-align: center;
+}
+
+.cardLayout .item_1{
+  display: grid;
+  grid-template-columns: 2fr 8fr 2fr;
 }
 
 .cardLayout .item_2{
@@ -33,17 +81,21 @@ body{
 
 .playerActions{
   display: grid;
-  grid-template-rows: 1fr 1fr 1fr;
+  grid-template-rows: 1fr 1fr 1fr 1fr;
 }
 
 .deck{
   display: grid;
-  grid-template-rows: 1fr 1fr 2fr;
+  grid-template-rows: 1fr 4fr;
+  background: #233659;
+  border-radius: 14px;
+  text-align: center;
+  box-shadow: 5px 5px #5d6677;
 }
 
 .deckTable{
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-columns: 1fr 4fr 3fr;
 }
 
 .cardRed{
@@ -52,14 +104,24 @@ body{
 
 .header{
   text-align: center;
+  color: black;
 }
 
-.cardsBackToDeck, .recentCards{
-  display: grid,
-  grid-template-rows: 1fr 1fr;
+.mainDeck, .cardsBackToDeck, .cardsByOpponent{
+  display: grid;
+  grid-template-rows: 1fr 4fr;
 }
 
-.cardsBackToDeck .item_2, .recentCards .item_2{
-  display: grid,
+.mainDeck, .cardsByOpponent{
+  border-right: 1px solid #f18f8f;
+}
+
+.cardsBackToDeck > .item_2{
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+}
+
+.cardsByOpponent > .item_2{
+  display: grid;
   grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
 }

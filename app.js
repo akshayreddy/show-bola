@@ -1,6 +1,7 @@
 let express = require('express');
 let path = require('path');
 let app = express();
+let socket = require('socket.io');
 const port = 3000
 
 app.use(express.static(path.join(__dirname, 'public')));
@@ -10,9 +11,21 @@ let routes = require('./routes/index');
 
 app.use('/', routes);
 
-// view engine setup
+// View engine setup
 app.set('view engine', 'html');
 
-app.listen(port, () => console.log(`Example app listening on port ${port}!`))
+let server = app.listen(port, () => console.log(`Example app listening on port ${port}!`))
 
 module.exports = app;
+
+// Socket setup
+
+let io = socket(server);
+
+io.on('connection', (socketInstance) => {
+	console.log('Socket connection was made', socketInstance.id);
+});
+
+io.on('playerGaveCard', (player) => {
+	console.log('player gave cards', player);
+});

@@ -148,11 +148,6 @@
 </template>
 
 <script>
-// import HelloWorld from './components/HelloWorld.vue'
-// import Deck from './components/Deck.vue'
-// import Player from './components/Player.vue'
-// import Opponent from './components/Opponent.vue'
-// import LeaderBoard from './components/LeaderBoard.vue'
 
 const StandardDeck = require('./cardService/deck');
 const Player = require('./game/player');
@@ -161,17 +156,8 @@ let standardDeck = new StandardDeck();
 let playerA = new Player({name: 'Santhu'});
 let playerB = new Player({name: 'Guru'});
 
-console.log(new StandardDeck());
-
 export default {
   name: 'App',
-  components: {
-    // HelloWorld,
-    // Deck,
-    // Player,
-    // Opponent,
-    // LeaderBoard
-  },
   data(){
     return {
       standardDeck: standardDeck,
@@ -186,10 +172,19 @@ export default {
       openCardSelected: {},
     };
   },
+  sockets: {
+    connect: function () {
+        console.log('socket connected')
+    },
+    playerGaveCard: function (player) {
+      console.log(player);
+    }
+  },
   methods: {
       shuffle(){
         this.standardDeck.shuffle();
       },
+
       giveCards(){
         let cardsToGive = 5;
         for (let interation = 0; interation < cardsToGive; interation++) {
@@ -201,21 +196,24 @@ export default {
         this.openCards.push(standardDeck.deck.pop());
         this.shouldGiveCards = false;
       },
+
       selectOpenCard(card){
         this.openCardSelected = card;
         this.isCardSelected = true;
       },
+
       takeOpenCard(player){
-        if(this.isCardSelected === true){
+        if (this.isCardSelected === true) {
           player.cards.push(this.openCardSelected);
           this.openCards = [];
           this.isCardSelected = false;
           player.hasTakenCards = true;
           player.message = "Give card / cards now";
-        } else if(this.isCardSelected === false){
+        } else if (this.isCardSelected === false) {
           player.message = "Select the open card";
         }
       },
+
       takeCardFromDeck(player){
         let card = standardDeck.deck.pop()
         player.cards.push(card);
@@ -223,30 +221,32 @@ export default {
         player.hasTakenCards = true;
         player.message = "Give card / cards now";
       },
+
       canPlayerSkip(openCards, selectedCards){
         let result = false;
         openCards.some(openCard => {
           selectedCards.some(selectedCard => {
-            if(openCard.value == selectedCard.value){
+            if (openCard.value == selectedCard.value) {
               result = true;
             }
           });
         });
         return result;
       },
+
       giveCard(player){
         let selectedCardsNumber = player.selectedCards.length;
 
         //check if player has selected the cards
-        if(selectedCardsNumber === 0){
+        if (selectedCardsNumber === 0) {
           player.message = "Select the cards";
           return;
         }
 
         // check if the player has taken the cards before
         // if player has not taken card, check if the turn can be skipped
-        if(player.hasTakenCards === false){
-          if(this.canPlayerSkip(this.openCards, player.selectedCards) === false){
+        if (player.hasTakenCards === false) {
+          if (this.canPlayerSkip(this.openCards, player.selectedCards) === false) {
             player.message = "No matching open cards. Cannot skip!";
             return;
           }
@@ -263,37 +263,41 @@ export default {
 
         player.hasTakenCards = false;
         player.message = "";
-        if(player === this.playerA){
+        if (player === this.playerA) {
           this.currentPlayer = this.playerB;
-        }else{
+        } else {
           this.currentPlayer = this.playerA;
         }
         
+        this.$socket.emit('playerGaveCard', player);
       },
+
       cardSelect(card, player){
-        if(!player.selectedCards.includes(card)){
+        if (!player.selectedCards.includes(card)) {
           player.selectedCards.push(card);
           player.runRules();
-          if(player.isNumberInSequenceRule || player.isColorSuitAndOrderRule){
+          if (player.isNumberInSequenceRule || player.isColorSuitAndOrderRule) {
             player.message = "You can put these cards";
             player.showGiveCard = true;
-          }else{
+          } else {
             player.message = "You cannot put these cards";
             player.showGiveCard = false;
           }
         }
       },
+
       clearSelectedCards(player){
         player.selectedCards = [];
         player.message = "";
         player.showGiveCard = true;
       },
+
       show(){
         let rankA = this.playerA.rank;
         let rankB = this.playerB.rank;
-        if(rankA < rankB){
+        if (rankA < rankB) {
           alert(this.playerA.name + " Won!!");
-        }else{
+        } else {
           alert(this.playerB.name + " Won!!");
         }
         
