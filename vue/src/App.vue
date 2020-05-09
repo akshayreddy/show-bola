@@ -174,11 +174,17 @@ export default {
   },
   sockets: {
     connect: function () {
-        console.log('socket connected')
+      console.log('socket connected')
     },
-    playerGaveCard: function (player) {
-      console.log(player);
+    giveCards: function (data) {
+      console.log('give cards', data);
     }
+  },
+  created(){
+    console.log('created', this.$socket);
+    this.$socket.on('giveCards', (data) => {
+      this.msg = data.message;
+    });
   },
   methods: {
       shuffle(){
@@ -195,6 +201,8 @@ export default {
         playerB.rankCount();
         this.openCards.push(standardDeck.deck.pop());
         this.shouldGiveCards = false;
+
+        this.$socket.emit('giveCards', playerA);
       },
 
       selectOpenCard(card){

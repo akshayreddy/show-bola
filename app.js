@@ -1,7 +1,8 @@
-let express = require('express');
-let path = require('path');
-let app = express();
-let socket = require('socket.io');
+const express = require('express');
+const path = require('path');
+const app = express();
+const http = require('http').Server(app);
+const io = require('socket.io')(http);
 const port = 3000
 
 app.use(express.static(path.join(__dirname, 'public')));
@@ -14,18 +15,14 @@ app.use('/', routes);
 // View engine setup
 app.set('view engine', 'html');
 
-let server = app.listen(port, () => console.log(`Example app listening on port ${port}!`))
-
 module.exports = app;
-
-// Socket setup
-
-let io = socket(server);
 
 io.on('connection', (socketInstance) => {
 	console.log('Socket connection was made', socketInstance.id);
+
+	socketInstance.on('giveCards', (data) => {
+		io.emit('giveCards', data);
+	});
 });
 
-io.on('playerGaveCard', (player) => {
-	console.log('player gave cards', player);
-});
+http.listen(port, () => console.log(`Example app listening on port ${port}!`))
