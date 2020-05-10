@@ -10,12 +10,40 @@ body{
   grid-template-rows: 1fr 16fr;
 }
 
-#app{
+#start{
+  display: grid;
+  grid-template-rows: 1fr 1fr;
+  -webkit-font-smoothing: antialiased;
+  justify-items: center;
+}
+
+#game{
   display: grid;
   grid-template-columns: 4fr 1fr;
   grid-column-gap: 12px;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+.createGame{
+  display: grid;
+  grid-row-gap: 20px;
+  width: 30%;
+}
+
+.startNavButtons{
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-column-gap: 40px;
+  width: 30%;
+  height: 10%;
+
+}
+
+.joinGame{
+  display: grid;
+  grid-row-gap: 20px;
+  width: 30%;
 }
 
 .arena{

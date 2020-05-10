@@ -18,11 +18,10 @@ app.set('view engine', 'html');
 module.exports = app;
 
 io.on('connection', (socketInstance) => {
-	console.log('Socket connection was made', socketInstance.id);
-
 	socketInstance.on('giveCards', (data) => {
-		io.emit('giveCards', data);
+		socketInstance.broadcast.emit('giveCards', data);
 	});
+
 });
 
 http.listen(port, () => console.log(`Example app listening on port ${port}!`))
