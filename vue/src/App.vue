@@ -2,11 +2,11 @@
   <div id="app">
     <div id="start" v-show="!game">
       <div class="startNavButtons">
-        <button class="btn btn-primary" @click=btnCreateGame()>Create game</button>
-        <button class="btn btn-primary" @click=btnJoinGame()>Join game</button>
+        <button class="btn btn-primary" @click=btnCreateGameRoom()>Create room</button>
+        <button class="btn btn-primary" @click=btnJoinGameRoom()>Join room</button>
       </div>
       <div v-if="showCreateGame" class="createGame">
-        <input placeholder="Your game name" class="form-control">
+        <input placeholder="Your game name" class="form-control" v-model="playerName">
         <select class="custom-select">
           <option value="null">Number of players</option>
           <option value="2">Two</option>
@@ -19,12 +19,12 @@
           <option value="standard-single">Standard (52 cards)</option>
           <option value="standard-double">Standard (104 cards)</option>
         </select>
-        <button class="btn btn-success" @click=createGame()>Start</button>
+        <button class="btn btn-success" @click=createGameRoom()>Create</button>
       </div>
       <div v-if="showJoinGame" class="joinGame">
-        <input placeholder="Enter the join code" class="form-control">
-        <input placeholder="Your game name" class="form-control">
-        <button class="btn btn-success" @click=joinGame()>Join</button>
+        <input placeholder="Enter the join code" class="form-control" v-model="roomJoinCode">
+        <input placeholder="Your game name" class="form-control" v-model="playerName">
+        <button class="btn btn-success" @click=joinGameRoom()>Join</button>
       </div>
     </div>
     <div id="game" v-show="game">
@@ -170,7 +170,13 @@
         </div>
       </div>
       <div class="leaderBoard">
-        <span>Leader board</span>
+        <div>
+          <span>Room Join Code: </span> <span class="text-success">{{ room.id }}</span>
+        </div>
+        <div>
+          <span>Players in room</span><br>
+          <div class="text-success" v-for="player in room.playersInRoom" :key="player.socketId">{{ player.name }}</div>
+        </div>
       </div>
     </div>
   </div>
@@ -192,6 +198,9 @@ export default {
   data(){
     return {
       socket: {},
+      room: {},
+      roomJoinCode: undefined,
+      playerName: undefined,
       game: false,
       showCreateGame: true,
       showJoinGame: false,
@@ -213,30 +222,46 @@ export default {
   mounted(){
     this.socket.on('giveCards', (data) => {
       console.log(data);
+    });
+
+    this.socket.on('room-updates', (room) => {
+      this.room = room;
+      console.log('room-updates', room);
+    });
+
+    this.socket.on('player-added', (player) => {
+      this.playerA = new Player({name: player.name});
     })
+  
+    this.socket.on('join-room-error', () => {
+      console.log('join-room-error');
+    })
+
   },
   methods: {
       shuffle(){
         this.standardDeck.shuffle();
       },
 
-      btnCreateGame(){
+      btnCreateGameRoom(){
         this.showCreateGame = true;
         this.showJoinGame = false;
       },
 
-      btnJoinGame(){
+      btnJoinGameRoom(){
         this.showCreateGame = false;
         this.showJoinGame = true;
       },
 
-      createGame(){
+      createGameRoom(){
         this.game = true;
-        this.game = true;
+
+        this.socket.emit('create-room', this.playerName);
       },
 
-      joinGame(){
-
+      joinGameRoom(){
+        this.game = true;
+        this.socket.emit('join-room', this.roomJoinCode, this.playerName);
       },
 
       giveCards(){
