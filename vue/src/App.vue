@@ -7,14 +7,14 @@
       </div>
       <div v-if="showCreateGame" class="createGame">
         <input placeholder="Your game name" class="form-control" v-model="playerName">
-        <select class="custom-select">
+        <select class="custom-select" v-model="numberOfPlayers">
           <option value="null">Number of players</option>
           <option value="2">Two</option>
           <option value="3">Three</option>
           <option value="2">Four</option>
           <option value="3">Five</option>
         </select>
-        <select class="custom-select">
+        <select class="custom-select" v-model="deckType"> 
           <option value="null">Deck type</option>
           <option value="standard-single">Standard (52 cards)</option>
           <option value="standard-double">Standard (104 cards)</option>
@@ -22,8 +22,8 @@
         <button class="btn btn-success" @click=createGameRoom()>Create</button>
       </div>
       <div v-if="showJoinGame" class="joinGame">
-        <input placeholder="Enter the join code" class="form-control" v-model="roomJoinCode">
         <input placeholder="Your game name" class="form-control" v-model="playerName">
+        <input placeholder="Enter the join code" class="form-control" v-model="roomJoinCode">
         <button class="btn btn-success" @click=joinGameRoom()>Join</button>
       </div>
     </div>
@@ -81,10 +81,14 @@
             </div>
             <div class="deckAction">
               <div>
-                <button type="button" class="btn btn-primary" v-if="shouldGiveCards" @click="giveCards">Give cards</button>
+                <button type="button" class="btn btn-primary" 
+                v-if="waitingFor === 0 && room.hostId === playerId" 
+                @click="giveCards">Give cards</button>
               </div>
               <div>
-                <button type="button" class="btn btn-primary" @click="shuffle">Shuffle</button>
+                <button type="button" class="btn btn-primary" 
+                v-if="waitingFor === 0 && room.hostId === playerId" 
+                @click="shuffle">Shuffle</button>
               </div>
             </div>
           </div>
@@ -174,6 +178,9 @@
           <span>Room Join Code: </span> <span class="text-success">{{ room.id }}</span>
         </div>
         <div>
+          <span>Waiting for players: </span> <span class="text-success">{{ waitingFor }}</span>
+        </div>
+        <div>
           <span>Players in room</span><br>
           <div class="text-success" v-for="player in room.playersInRoom" :key="player.socketId">{{ player.name }}</div>
         </div>
@@ -189,8 +196,6 @@ import io from 'socket.io-client';
 const StandardDeck = require('./cardService/deck');
 const Player = require('./game/player');
 
-let standardDeck = new StandardDeck();
-let playerA = new Player({name: 'Santhu'});
 let playerB = new Player({name: 'Guru'});
 
 export default {
@@ -201,17 +206,19 @@ export default {
       room: {},
       roomJoinCode: undefined,
       playerName: undefined,
+      playerId: undefined,
+      numberOfPlayers: undefined,
+      deckType: undefined,
+      waitingFor: undefined,
       game: false,
       showCreateGame: true,
       showJoinGame: false,
-      standardDeck: standardDeck,
-      playerA: playerA,
+      standardDeck: new StandardDeck(),
+      playerA: new Player({name: 'test'}),
       playerB: playerB,
-      cardSelectedByPlayerA: playerA.selectedCards,
-      cardSelectedByPlayerB: playerB.selectedCards,
       shouldGiveCards: true,
       openCards: [],
-      currentPlayer: playerA,
+      currentPlayer: undefined,
       isCardSelected: false,
       openCardSelected: {},
     };
@@ -224,17 +231,34 @@ export default {
       console.log(data);
     });
 
+    this.socket.on('room-created', (room) => {
+      this.room = room;
+      if (this.room.deckType === 'standard-double') {
+        this.standardDeck = new StandardDeck(2);
+
+      } else {
+        this.standardDeck = new StandardDeck();
+      }
+
+      this.shuffle();
+      this.waitingFor = this.room.playersLimit - this.room.playersInRoom.length;
+      console.log('room-created', room);
+    });
+
     this.socket.on('room-updates', (room) => {
       this.room = room;
+      this.waitingFor = this.room.playersLimit - this.room.playersInRoom.length;
       console.log('room-updates', room);
     });
 
     this.socket.on('player-added', (player) => {
       this.playerA = new Player({name: player.name});
+      this.currentPlayer = this.playerA;
+      this.playerId = player.playerId;
     })
   
-    this.socket.on('join-room-error', () => {
-      console.log('join-room-error');
+    this.socket.on('join-room-error', (data) => {
+      console.log(data);
     })
 
   },
@@ -256,26 +280,31 @@ export default {
       createGameRoom(){
         this.game = true;
 
-        this.socket.emit('create-room', this.playerName);
+        this.socket.emit('create-room', { 
+          playerName: this.playerName, 
+          numberOfPlayers: this.numberOfPlayers, 
+          deckType: this.deckType
+        });
       },
 
       joinGameRoom(){
         this.game = true;
-        this.socket.emit('join-room', this.roomJoinCode, this.playerName);
+        this.socket.emit('join-room', {
+          roomCode: this.roomJoinCode, 
+          playerName: this.playerName,
+        });
       },
 
       giveCards(){
         let cardsToGive = 5;
         for (let interation = 0; interation < cardsToGive; interation++) {
-          playerA.cards.push(standardDeck.deck.pop());
-          playerB.cards.push(standardDeck.deck.pop());
+          this.playerA.cards.push(this.standardDeck.deck.pop());
+          this.playerB.cards.push(this.standardDeck.deck.pop());
         }
-        playerA.rankCount();
-        playerB.rankCount();
-        this.openCards.push(standardDeck.deck.pop());
+        this.playerA.rankCount();
+        this.playerB.rankCount();
+        this.openCards.push(this.standardDeck.deck.pop());
         this.shouldGiveCards = false;
-
-        this.socket.emit('giveCards', playerA);
       },
 
       selectOpenCard(card){
@@ -296,7 +325,7 @@ export default {
       },
 
       takeCardFromDeck(player){
-        let card = standardDeck.deck.pop()
+        let card = this.standardDeck.deck.pop()
         player.cards.push(card);
         player.rank = player.rank + card.rank;
         player.hasTakenCards = true;
@@ -336,7 +365,7 @@ export default {
         this.openCards = [];
         for (let iteration = 0; iteration < selectedCardsNumber; iteration++) {
           let card = player.selectedCards.pop();
-          standardDeck.cardsGivenBack.push(card);
+          this.standardDeck.cardsGivenBack.push(card);
           this.openCards.push(card);
           player.cards.splice(player.cards.indexOf(card), 1);
           player.rank = player.rank - card.rank;

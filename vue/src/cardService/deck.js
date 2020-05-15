@@ -1,11 +1,16 @@
 const Card = require('./card');
 
 class StandardDeck {
-	constructor() {
+	constructor(numberOfDeck = 1) {
 		this.suits = ["spade", "diamond", "club", "heart"];
 		this.values = ["ace", "2", "3", "4", "5", "6", "7", "8", "9", "10", "jack", "queen", "king"];
-		this.deck = this.buildDeck();
 		this.cardsGivenBack = [];
+		
+		if (numberOfDeck === 2) {
+			this.deck = this.buildDeck().concat(this.buildDeck());
+		} else {
+			this.deck = this.buildDeck();
+		}
 	}
 
 	buildDeck(){

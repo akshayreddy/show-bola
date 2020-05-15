@@ -37,6 +37,7 @@ class Room {
 		this.id = Math.floor(( Math.random() * 100000 ));
 		this.timestamp = new Date();
 		this.hostName = args.hostName;
+		this.hostId = args.hostId;
 		this.playersLimit = args.playersLimit;
 		this.deckType = args.deckType;
 		this.playersInRoom = [];
@@ -57,13 +58,16 @@ let rooms = {}
 io.on('connection', (client) => {
 
 	// create a room
-	client.on('create-room', (playerName) => {
-		let hostName = playerName;
+	client.on('create-room', (data) => {
+		let hostName = data.playerName;
+		let numberOfPlayers = data.numberOfPlayers;
+		let decktype = data.deckType;
 
 		let room = new Room({
 			hostName: hostName,
-			playersLimit: 4,
-			deckType: 'standard-single',
+			hostId: client.id,
+			playersLimit: parseInt(numberOfPlayers),
+			deckType: decktype,
 		});
 
 		rooms[room.id] = room;
@@ -77,7 +81,7 @@ io.on('connection', (client) => {
 
 		let clientRoom = client.join(room.id);
 
-		client.emit('room-updates', room);
+		client.emit('room-created', room);
 		client.emit('player-added', player);
 
 		clientRoom.on('join', () => {
@@ -86,18 +90,25 @@ io.on('connection', (client) => {
 	});
 
 	// when room is joined
-	client.on('join-room', (roomId, playerName) => {
+	client.on('join-room', (data) => {
+		let roomId = data.roomCode;
+		let playerName = data.playerName;
 
-		if(!rooms.hasOwnProperty(roomId)){
-			console.log('Ivalid room ID');
-			client.emit('join-room-error');
+		if (!rooms.hasOwnProperty(roomId)) {
+			client.emit('join-room-error', 'Ivalid room ID');
+			return;
 		}
 
 		let room = rooms[roomId];
 
+		if (room.playersInRoom.length === room.playersLimit){
+			client.emit('join-room-error', 'room full');
+			return;
+		}
+
 		let player = new Player({
 			name: playerName,
-			socketId: client.id,
+			playerId: client.id,
 		});
 
 		room.playersInRoom.push(player);
