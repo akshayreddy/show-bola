@@ -22,6 +22,7 @@ class Player {
 		this.name = args.name;
 		this.playerId = args.playerId;
 		this.timestamp = new Date();
+		this.cards = [];
 	}
 }
 
@@ -142,6 +143,33 @@ io.on('connection', (client) => {
 		let room = rooms[roomId];
 
 		io.in(room.id).emit('current-turn', { playerId: room.nextTurn() });
+	});
+
+	// changes to the deck
+	client.on('deck-updated', (data) => {
+		let roomId = data.roomCode;
+		let room = rooms[roomId];
+
+		io.in(room.id).emit('deck-updates', { deck: data.deck });
+	});
+
+	// give cards to players
+	client.on('give-cards', (data) => {
+		let roomId = data.roomCode;
+		let room = rooms[roomId];
+		let standardDeck = data.deck;
+		let cardsToGive = 5;
+
+        for (let interation = 0; interation < cardsToGive; interation++) {
+        	room.playersInRoom.forEach((player) => {
+              player.cards.push(standardDeck.deck.pop());
+          	});
+        }
+
+        standardDeck.openCards.push(standardDeck.deck.pop());
+
+		io.in(room.id).emit('take-cards', { 'playersInRoom' : room.playersInRoom} );
+		io.in(room.id).emit('deck-updates', { deck: standardDeck });
 	});
 
 });

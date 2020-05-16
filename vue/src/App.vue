@@ -32,7 +32,7 @@
         <div class="cardLayout">
           <div class="item_1">
             <div class="cardTitle">
-              <h4>{{playerB.name}}<span v-if="currentPlayer === playerB">, your turn</span></h4>
+              <h4>{{playerB.name}}</h4>
             </div>
             <div>
               <h4>
@@ -58,7 +58,7 @@
                   <img width="150px" height="150px" viewBox="0 0 150 150" :src="'./media/svg/' + card.value + '_of_'+ card.suit + 's.svg'">
               </div>
             </div>
-            <div class="playerActions" span v-show="currentPlayer === playerB">
+            <div class="playerActions" span v-show="currentPlayer === null">
               <div>
                 <button type="button" v-if="playerB.hasTakenCards === false" class="btn btn-primary" @click="takeOpenCard(playerB)">Take open card</button>
               </div>
@@ -130,7 +130,7 @@
         <div class="cardLayout">
           <div class="item_1">
             <div class="cardTitle">
-              <h4>{{playerA.name}}<span v-if="currentPlayer === playerA">, your turn</span> </h4>
+              <h4>{{playerA.name}}<span v-if="currentPlayer === playerId">, your turn</span> </h4>
             </div>
             <div>
               <h4>
@@ -156,7 +156,7 @@
                   <img width="150px" height="150px" viewBox="0 0 150 150" :src="'./media/svg/' + card.value + '_of_'+ card.suit + 's.svg'">
               </div>
             </div>
-            <div class="playerActions" v-show="currentPlayer === playerA">
+            <div class="playerActions" v-show="currentPlayer === playerId">
               <div>
                 <button type="button" v-if="playerA.hasTakenCards === false" class="btn btn-primary" @click="takeOpenCard(playerA)">Take open card</button>
               </div>
@@ -250,9 +250,23 @@ export default {
       console.log('room-updates', room);
     });
 
+    this.socket.on('deck-updates', (data) => {
+      this.standardDeck = data.deck;
+    });
+
+    this.socket.on('take-cards', (data) => {
+
+      data.playersInRoom.forEach((player) => {
+        if (player.playerId === this.playerId) {
+          this.playerA.cards = player.cards;
+          this.playerA.rankCount();
+        }
+      });
+      this.shouldGiveCards = false;
+    });
+
     this.socket.on('player-added', (player) => {
       this.playerA = new Player({name: player.name});
-      this.currentPlayer = this.playerA;
       this.playerId = player.playerId;
       console.log(player);
     });
@@ -262,11 +276,7 @@ export default {
     });
 
     this.socket.on('current-turn', (data) => {
-      if (this.playerId === data.playerId) {
-        console.log('It is your turn');
-      } else {
-        console.log('It is not your turn');
-      }
+      this.currentPlayer = data.playerId;
     });
   },
   methods: {
@@ -303,15 +313,10 @@ export default {
       },
 
       giveCards(){
-        let cardsToGive = 5;
-        for (let interation = 0; interation < cardsToGive; interation++) {
-          this.playerA.cards.push(this.standardDeck.deck.pop());
-          this.playerB.cards.push(this.standardDeck.deck.pop());
-        }
-        this.playerA.rankCount();
-        this.playerB.rankCount();
-        this.standardDeck.openCards.push(this.standardDeck.deck.pop());
-        this.shouldGiveCards = false;
+        this.socket.emit('give-cards', {
+          roomCode: this.room.id,
+          deck: this.standardDeck, 
+        });
       },
 
       selectOpenCard(card){
@@ -326,6 +331,11 @@ export default {
           this.isCardSelected = false;
           player.hasTakenCards = true;
           player.message = "Give card / cards now";
+
+          this.socket.emit('deck-updated', {
+            roomCode: this.room.id,
+            deck: this.standardDeck, 
+          });
         } else if (this.isCardSelected === false) {
           player.message = "Select the open card";
         }
@@ -337,6 +347,11 @@ export default {
         player.rank = player.rank + card.rank;
         player.hasTakenCards = true;
         player.message = "Give card / cards now";
+
+        this.socket.emit('deck-updated', {
+          roomCode: this.room.id,
+          deck: this.standardDeck, 
+        });
       },
 
       canPlayerSkip(openCards, selectedCards){
@@ -375,18 +390,16 @@ export default {
           this.standardDeck.cardsGivenBack.push(card);
           this.standardDeck.openCards.push(card);
           player.cards.splice(player.cards.indexOf(card), 1);
-          player.rank = player.rank - card.rank;
         }
 
+        player.rankCount();
         player.hasTakenCards = false;
         player.message = "";
 
-        // next turn
-        if (player === this.playerA) {
-          this.currentPlayer = this.playerB;
-        } else {
-          this.currentPlayer = this.playerA;
-        }
+        this.socket.emit('deck-updated', {
+          roomCode: this.room.id,
+          deck: this.standardDeck, 
+        });
 
         this.socket.emit('next-turn', {
           roomCode: this.room.id,
