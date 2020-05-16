@@ -5,6 +5,7 @@ class StandardDeck {
 		this.suits = ["spade", "diamond", "club", "heart"];
 		this.values = ["ace", "2", "3", "4", "5", "6", "7", "8", "9", "10", "jack", "queen", "king"];
 		this.cardsGivenBack = [];
+		this.openCards = [];
 		
 		if (numberOfDeck === 2) {
 			this.deck = this.buildDeck().concat(this.buildDeck());

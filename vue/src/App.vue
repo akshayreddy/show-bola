@@ -32,104 +32,6 @@
         <div class="cardLayout">
           <div class="item_1">
             <div class="cardTitle">
-              <h4>{{playerA.name}}<span v-if="currentPlayer === playerA">, your turn</span> </h4>
-            </div>
-            <div>
-              <h4>
-                <span>Score: {{playerA.rank}}</span> |
-                <span>Cards: {{playerA.cards.length}}</span> |
-                <span>Selected {{playerA.selectedCards.length}} cards 
-                  <button v-if="playerA.selectedCards.length > 0" 
-                    @click=clearSelectedCards(playerA)
-                    class="btn btn-primary btn-sm">clear
-                  </button>
-                </span>
-              </h4>
-            </div>
-            <div>
-              <span>{{ playerA.message }}</span>
-            </div>
-          </div>
-          <div class="item_2">
-            <div class="playerCards"> 
-              <div v-for="card in playerA.cards" :key="card.name" :card="card" 
-              @click="cardSelect(card, playerA)"
-              v-bind:class="[card.color === 'red' ? 'cardRed' : '']">
-                  <img width="150px" height="150px" viewBox="0 0 150 150" :src="'./media/svg/' + card.value + '_of_'+ card.suit + 's.svg'">
-              </div>
-            </div>
-            <div class="playerActions" v-show="currentPlayer === playerA">
-              <div>
-                <button type="button" v-if="playerA.hasTakenCards === false" class="btn btn-primary" @click="takeOpenCard(playerA)">Take open card</button>
-              </div>
-              <div>
-                <button type="button" v-if="playerA.hasTakenCards === false" class="btn btn-primary" @click="takeCardFromDeck(playerA)">Take deck card</button>
-              </div>
-              <div>
-                <button type="button" v-if="playerA.showGiveCard === true" class="btn btn-primary" @click="giveCard(playerA)">Give Cards</button>
-              </div>
-              <div>
-                <button type="button" class="btn btn-danger" @click="show()">Show</button>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="deck">
-          <div class="deckHeader">
-            <div class="cardTitle">
-              <h4>The Deck</h4>
-            </div>
-            <div class="deckAction">
-              <div>
-                <button type="button" class="btn btn-primary" 
-                v-if="waitingFor === 0 && room.hostId === playerId" 
-                @click="giveCards">Give cards</button>
-              </div>
-              <div>
-                <button type="button" class="btn btn-primary" 
-                v-if="waitingFor === 0 && room.hostId === playerId" 
-                @click="shuffle">Shuffle</button>
-              </div>
-            </div>
-          </div>
-          <div class="deckTable">
-            <div class="mainDeck">
-              <div>
-                <span>Main deck ({{standardDeck.deck.length}} cards)</span>
-              </div>
-              <div>
-                <img width="150px" height="150px" viewBox="0 0 150 150" :src="'./media/svg/deck_card.svg'">
-              </div>  
-            </div>
-            <div class="cardsByOpponent">
-              <div class="item_1">
-                <span>Open card <span v-if="isCardSelected">selected</span></span>
-              </div>
-              <div class="item_2">
-              <div v-for="card in openCards" :key="card.name" :card="card"
-              @click="selectOpenCard(card)"
-              v-bind:class="[card.color === 'red' ? 'cardRed' : '']">
-                  <img width="150px" height="150px" viewBox="0 0 150 150" :src="'./media/svg/' + card.value + '_of_'+ card.suit + 's.svg'">
-              </div>
-              </div>
-            </div>
-            <div class="cardsBackToDeck">
-              <div class="item_1">
-                <span>Recent cards given back</span>
-              </div>
-              <div class="item_2">
-                <div v-for="card in standardDeck.cardsGivenBack.slice(-3)" :key="card.name" 
-                :card="card"
-                v-bind:class="[card.color === 'red' ? 'cardRed' : '']">
-                  <img width="150px" height="150px" viewBox="0 0 150 150" :src="'./media/svg/' + card.value + '_of_'+ card.suit + 's.svg'">
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="cardLayout">
-          <div class="item_1">
-            <div class="cardTitle">
               <h4>{{playerB.name}}<span v-if="currentPlayer === playerB">, your turn</span></h4>
             </div>
             <div>
@@ -165,6 +67,104 @@
               </div>
               <div>
                 <button type="button" v-if="playerB.showGiveCard === true" class="btn btn-primary" @click="giveCard(playerB)">Give Cards</button>
+              </div>
+              <div>
+                <button type="button" class="btn btn-danger" @click="show()">Show</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="deck">
+          <div class="deckHeader">
+            <div class="cardTitle">
+              <h4>The Deck</h4>
+            </div>
+            <div class="deckAction">
+              <div>
+                <button type="button" class="btn btn-primary" 
+                v-if="waitingFor === 0 && room.hostId === playerId && shouldGiveCards" 
+                @click="giveCards">Give cards</button>
+              </div>
+              <div>
+                <button type="button" class="btn btn-primary" 
+                v-if="waitingFor === 0 && room.hostId === playerId && shouldGiveCards" 
+                @click="shuffle">Shuffle</button>
+              </div>
+            </div>
+          </div>
+          <div class="deckTable">
+            <div class="mainDeck">
+              <div>
+                <span>Main deck ({{standardDeck.deck.length}} cards)</span>
+              </div>
+              <div>
+                <img width="150px" height="150px" viewBox="0 0 150 150" :src="'./media/svg/deck_card.svg'">
+              </div>  
+            </div>
+            <div class="cardsByOpponent">
+              <div class="item_1">
+                <span>Open card <span v-if="isCardSelected">selected</span></span>
+              </div>
+              <div class="item_2">
+              <div v-for="card in standardDeck.openCards" :key="card.name" :card="card"
+              @click="selectOpenCard(card)"
+              v-bind:class="[card.color === 'red' ? 'cardRed' : '']">
+                  <img width="150px" height="150px" viewBox="0 0 150 150" :src="'./media/svg/' + card.value + '_of_'+ card.suit + 's.svg'">
+              </div>
+              </div>
+            </div>
+            <div class="cardsBackToDeck">
+              <div class="item_1">
+                <span>Recent cards given back</span>
+              </div>
+              <div class="item_2">
+                <div v-for="card in standardDeck.cardsGivenBack.slice(-3)" :key="card.name" 
+                :card="card"
+                v-bind:class="[card.color === 'red' ? 'cardRed' : '']">
+                  <img width="150px" height="150px" viewBox="0 0 150 150" :src="'./media/svg/' + card.value + '_of_'+ card.suit + 's.svg'">
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="cardLayout">
+          <div class="item_1">
+            <div class="cardTitle">
+              <h4>{{playerA.name}}<span v-if="currentPlayer === playerA">, your turn</span> </h4>
+            </div>
+            <div>
+              <h4>
+                <span>Score: {{playerA.rank}}</span> |
+                <span>Cards: {{playerA.cards.length}}</span> |
+                <span>Selected {{playerA.selectedCards.length}} cards 
+                  <button v-if="playerA.selectedCards.length > 0" 
+                    @click=clearSelectedCards(playerA)
+                    class="btn btn-primary btn-sm">clear
+                  </button>
+                </span>
+              </h4>
+            </div>
+            <div>
+              <span>{{ playerA.message }}</span>
+            </div>
+          </div>
+          <div class="item_2">
+            <div class="playerCards"> 
+              <div v-for="card in playerA.cards" :key="card.name" :card="card" 
+              @click="cardSelect(card, playerA)"
+              v-bind:class="[card.color === 'red' ? 'cardRed' : '']">
+                  <img width="150px" height="150px" viewBox="0 0 150 150" :src="'./media/svg/' + card.value + '_of_'+ card.suit + 's.svg'">
+              </div>
+            </div>
+            <div class="playerActions" v-show="currentPlayer === playerA">
+              <div>
+                <button type="button" v-if="playerA.hasTakenCards === false" class="btn btn-primary" @click="takeOpenCard(playerA)">Take open card</button>
+              </div>
+              <div>
+                <button type="button" v-if="playerA.hasTakenCards === false" class="btn btn-primary" @click="takeCardFromDeck(playerA)">Take deck card</button>
+              </div>
+              <div>
+                <button type="button" v-if="playerA.showGiveCard === true" class="btn btn-primary" @click="giveCard(playerA)">Give Cards</button>
               </div>
               <div>
                 <button type="button" class="btn btn-danger" @click="show()">Show</button>
@@ -217,7 +217,6 @@ export default {
       playerA: new Player({name: 'test'}),
       playerB: playerB,
       shouldGiveCards: true,
-      openCards: [],
       currentPlayer: undefined,
       isCardSelected: false,
       openCardSelected: {},
@@ -255,12 +254,20 @@ export default {
       this.playerA = new Player({name: player.name});
       this.currentPlayer = this.playerA;
       this.playerId = player.playerId;
-    })
+      console.log(player);
+    });
   
     this.socket.on('join-room-error', (data) => {
       console.log(data);
-    })
+    });
 
+    this.socket.on('current-turn', (data) => {
+      if (this.playerId === data.playerId) {
+        console.log('It is your turn');
+      } else {
+        console.log('It is not your turn');
+      }
+    });
   },
   methods: {
       shuffle(){
@@ -303,7 +310,7 @@ export default {
         }
         this.playerA.rankCount();
         this.playerB.rankCount();
-        this.openCards.push(this.standardDeck.deck.pop());
+        this.standardDeck.openCards.push(this.standardDeck.deck.pop());
         this.shouldGiveCards = false;
       },
 
@@ -315,7 +322,7 @@ export default {
       takeOpenCard(player){
         if (this.isCardSelected === true) {
           player.cards.push(this.openCardSelected);
-          this.openCards = [];
+          this.standardDeck.openCards = [];
           this.isCardSelected = false;
           player.hasTakenCards = true;
           player.message = "Give card / cards now";
@@ -356,30 +363,34 @@ export default {
         // check if the player has taken the cards before
         // if player has not taken card, check if the turn can be skipped
         if (player.hasTakenCards === false) {
-          if (this.canPlayerSkip(this.openCards, player.selectedCards) === false) {
+          if (this.canPlayerSkip(this.standardDeck.openCards, player.selectedCards) === false) {
             player.message = "No matching open cards. Cannot skip!";
             return;
           }
         }
 
-        this.openCards = [];
+        this.standardDeck.openCards = [];
         for (let iteration = 0; iteration < selectedCardsNumber; iteration++) {
           let card = player.selectedCards.pop();
           this.standardDeck.cardsGivenBack.push(card);
-          this.openCards.push(card);
+          this.standardDeck.openCards.push(card);
           player.cards.splice(player.cards.indexOf(card), 1);
           player.rank = player.rank - card.rank;
         }
 
         player.hasTakenCards = false;
         player.message = "";
+
+        // next turn
         if (player === this.playerA) {
           this.currentPlayer = this.playerB;
         } else {
           this.currentPlayer = this.playerA;
         }
-        
-        this.socket.emit('playerGaveCard', player);
+
+        this.socket.emit('next-turn', {
+          roomCode: this.room.id,
+        });
       },
 
       cardSelect(card, player){

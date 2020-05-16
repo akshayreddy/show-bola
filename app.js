@@ -20,7 +20,7 @@ module.exports = app;
 class Player {
 	constructor(args){
 		this.name = args.name;
-		this.socketId = args.socketId;
+		this.playerId = args.playerId;
 		this.timestamp = new Date();
 	}
 }
@@ -29,6 +29,7 @@ class Message {
 	constructor(args){
 		this.text = args.text;
 		this.player = args.player;
+		this.timestamp = new Date();
 	}
 }
 
@@ -41,6 +42,8 @@ class Room {
 		this.playersLimit = args.playersLimit;
 		this.deckType = args.deckType;
 		this.playersInRoom = [];
+		this.playerIdList = [args.hostId];
+		this.isTurnOf = undefined;
 		this.messages = [];
 	}
 
@@ -50,6 +53,18 @@ class Room {
 		} else {
 			return true;
 		}
+	}
+
+	nextTurn() {
+		let indexOfCurrentPlayer = this.playerIdList.indexOf(this.isTurnOf);
+
+	  	if (indexOfCurrentPlayer === (this.playerIdList.length - 1)) {
+	    	this.isTurnOf = this.playerIdList[0];
+	  	} else {
+	    	this.isTurnOf = this.playerIdList[indexOfCurrentPlayer + 1];
+	  	}
+
+	  	return this.isTurnOf;
 	}
 }
 
@@ -74,15 +89,17 @@ io.on('connection', (client) => {
 
 		let player = new Player({
 			name: hostName,
-			socketId: client.id,
+			playerId: client.id,
 		})
 
 		room.playersInRoom.push(player);
+		room.isTurnOf = player.playerId;
 
 		let clientRoom = client.join(room.id);
 
 		client.emit('room-created', room);
 		client.emit('player-added', player);
+		client.emit('current-turn', player);
 
 		clientRoom.on('join', () => {
 			console.log('someone has joined the room');
@@ -112,15 +129,20 @@ io.on('connection', (client) => {
 		});
 
 		room.playersInRoom.push(player);
+		room.playerIdList.push(player.playerId)
 
-		client.emit('room-updates', room);
-		client.emit('player-added', player);
-
-		// check player count
 		client.join(room.id);
+		client.emit('player-added', player);
+		io.in(room.id).emit('room-updates', room);
+	});
 
-		client.to(room.id).emit('room-updates', room);
-	})
+	// request for next turn
+	client.on('next-turn', (data) => {
+		let roomId = data.roomCode;
+		let room = rooms[roomId];
+
+		io.in(room.id).emit('current-turn', { playerId: room.nextTurn() });
+	});
 
 });
 
