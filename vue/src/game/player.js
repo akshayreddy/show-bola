@@ -14,6 +14,7 @@ class Player {
 	}
 
 	rankCount(){
+		this.rank = 0;
 		this.cards.forEach(card => {
 			this.rank = this.rank + card.rank;
 		});

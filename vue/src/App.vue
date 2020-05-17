@@ -6,70 +6,48 @@
         <button class="btn btn-primary" @click=btnJoinGameRoom()>Join room</button>
       </div>
       <div v-if="showCreateGame" class="createGame">
-        <input placeholder="Your game name" class="form-control" v-model="playerName">
-        <select class="custom-select" v-model="numberOfPlayers">
-          <option value="null">Number of players</option>
-          <option value="2">Two</option>
-          <option value="3">Three</option>
-          <option value="2">Four</option>
-          <option value="3">Five</option>
-        </select>
-        <select class="custom-select" v-model="deckType"> 
-          <option value="null">Deck type</option>
-          <option value="standard-single">Standard (52 cards)</option>
-          <option value="standard-double">Standard (104 cards)</option>
-        </select>
-        <button class="btn btn-success" @click=createGameRoom()>Create</button>
+        <div>
+          <input placeholder="Your game name" class="form-control" v-model="playerName">
+        </div>
+        <div>
+          <select class="custom-select" v-model="numberOfPlayers">
+            <option value="null">Number of players</option>
+            <option value="2">Two</option>
+            <option value="3">Three</option>
+            <option value="2">Four</option>
+            <option value="3">Five</option>
+          </select>
+        </div>
+        <div>
+          <select class="custom-select" v-model="deckType"> 
+            <option value="null">Deck type</option>
+            <option value="standard-single">Standard (52 cards)</option>
+            <option value="standard-double">Standard (104 cards)</option>
+          </select>
+        </div>
+        <div>
+          <button class="btn btn-success" @click=createGameRoom()>Create</button>
+        </div>
       </div>
       <div v-if="showJoinGame" class="joinGame">
-        <input placeholder="Your game name" class="form-control" v-model="playerName">
-        <input placeholder="Enter the join code" class="form-control" v-model="roomJoinCode">
-        <button class="btn btn-success" @click=joinGameRoom()>Join</button>
+        <div>
+          <input placeholder="Your game name" class="form-control" v-model="playerName">
+        </div>
+        <div>
+          <input placeholder="Enter the join code" class="form-control" v-model="roomJoinCode">
+        </div>
+        <div>
+          <button class="btn btn-success" @click=joinGameRoom()>Join</button>
+        </div>
       </div>
     </div>
     <div id="game" v-show="game">
       <div class="arena">
-        <div class="cardLayout">
-          <div class="item_1">
-            <div class="cardTitle">
-              <h4>{{playerB.name}}</h4>
-            </div>
-            <div>
-              <h4>
-                <span>Score: {{playerB.rank}}</span> |
-                <span>Cards: {{playerB.cards.length}}</span> |
-                <span>Selected {{playerB.selectedCards.length}} cards 
-                  <button v-if="playerB.selectedCards.length > 0" 
-                    @click=clearSelectedCards(playerB)
-                    class="btn btn-primary btn-sm">clear
-                  </button>
-                </span>
-              </h4>
-            </div>
-            <div>
-              <span>{{ playerB.message }}</span>
-            </div>
-          </div>
-          <div class="item_2">
-            <div class="playerCards"> 
-              <div v-for="card in playerB.cards" :key="card.name" :card="card" 
-              @click="cardSelect(card, playerB)"
-              v-bind:class="[card.color === 'red' ? 'cardRed' : '']">
-                  <img width="150px" height="150px" viewBox="0 0 150 150" :src="'./media/svg/' + card.value + '_of_'+ card.suit + 's.svg'">
-              </div>
-            </div>
-            <div class="playerActions" span v-show="currentPlayer === null">
-              <div>
-                <button type="button" v-if="playerB.hasTakenCards === false" class="btn btn-primary" @click="takeOpenCard(playerB)">Take open card</button>
-              </div>
-              <div>
-                <button type="button" v-if="playerB.hasTakenCards === false" class="btn btn-primary" @click="takeCardFromDeck(playerB)">Take deck card</button>
-              </div>
-              <div>
-                <button type="button" v-if="playerB.showGiveCard === true" class="btn btn-primary" @click="giveCard(playerB)">Give Cards</button>
-              </div>
-              <div>
-                <button type="button" class="btn btn-danger" @click="show()">Show</button>
+        <div class="players">
+          <div class="playersCard" v-for="player in onlinePlayers" :key="player.playerId">
+            <div class="playerTitle">
+              <div class="playerName">
+                {{ player.name }} has {{ player.cards.length }} cards
               </div>
             </div>
           </div>
@@ -130,41 +108,41 @@
         <div class="cardLayout">
           <div class="item_1">
             <div class="cardTitle">
-              <h4>{{playerA.name}}<span v-if="currentPlayer === playerId">, your turn</span> </h4>
+              <h4>{{player.name}}<span v-if="currentPlayer === playerId">, your turn</span> </h4>
             </div>
             <div>
               <h4>
-                <span>Score: {{playerA.rank}}</span> |
-                <span>Cards: {{playerA.cards.length}}</span> |
-                <span>Selected {{playerA.selectedCards.length}} cards 
-                  <button v-if="playerA.selectedCards.length > 0" 
-                    @click=clearSelectedCards(playerA)
+                <span>Score: {{player.rank}}</span> |
+                <span>Cards: {{player.cards.length}}</span> |
+                <span>Selected {{player.selectedCards.length}} cards 
+                  <button v-if="player.selectedCards.length > 0" 
+                    @click=clearSelectedCards()
                     class="btn btn-primary btn-sm">clear
                   </button>
                 </span>
               </h4>
             </div>
             <div>
-              <span>{{ playerA.message }}</span>
+              <span>{{ player.message }}</span>
             </div>
           </div>
           <div class="item_2">
             <div class="playerCards"> 
-              <div v-for="card in playerA.cards" :key="card.name" :card="card" 
-              @click="cardSelect(card, playerA)"
+              <div v-for="card in player.cards" :key="card.name" :card="card" 
+              @click="cardSelect(card)"
               v-bind:class="[card.color === 'red' ? 'cardRed' : '']">
                   <img width="150px" height="150px" viewBox="0 0 150 150" :src="'./media/svg/' + card.value + '_of_'+ card.suit + 's.svg'">
               </div>
             </div>
             <div class="playerActions" v-show="currentPlayer === playerId">
               <div>
-                <button type="button" v-if="playerA.hasTakenCards === false" class="btn btn-primary" @click="takeOpenCard(playerA)">Take open card</button>
+                <button type="button" v-if="player.hasTakenCards === false" class="btn btn-primary" @click="takeOpenCard()">Take open card</button>
               </div>
               <div>
-                <button type="button" v-if="playerA.hasTakenCards === false" class="btn btn-primary" @click="takeCardFromDeck(playerA)">Take deck card</button>
+                <button type="button" v-if="player.hasTakenCards === false" class="btn btn-primary" @click="takeCardFromDeck()">Take deck card</button>
               </div>
               <div>
-                <button type="button" v-if="playerA.showGiveCard === true" class="btn btn-primary" @click="giveCard(playerA)">Give Cards</button>
+                <button type="button" v-if="player.showGiveCard === true" class="btn btn-primary" @click="giveCard()">Give Cards</button>
               </div>
               <div>
                 <button type="button" class="btn btn-danger" @click="show()">Show</button>
@@ -173,16 +151,50 @@
           </div>
         </div>
       </div>
-      <div class="leaderBoard">
+      <div class="infoBoard">
         <div>
-          <span>Room Join Code: </span> <span class="text-success">{{ room.id }}</span>
+          <div class="infoBoardTitle">
+            <h3>Rules</h3>
+          </div>
+          <div class="rules ml-2">
+            <div>
+              Player with the lowest score wins!
+            </div>
+            <div>
+              A player can take a card from deck or open cards section.
+            </div>
+            <div>
+                A player can skip taking a card when having 
+                <ul>Cards with same number 11, 555.</ul>
+                <ul>Cards with same color, same shape and in sequence. ex 1234, JQK.</ul>
+                <ul>Card with matching number in open cards section</ul>
+            </div>
+          </div>
         </div>
         <div>
-          <span>Waiting for players: </span> <span class="text-success">{{ waitingFor }}</span>
+          <div class="infoBoardTitle">
+            <h3>Room</h3>
+          </div>
+          <div class="roonInfo ml-2">
+            <div>
+              <span>Room Join Code: </span> <span class="text-danger font-weight-bold">{{ room.id }}</span>
+            </div>
+            <div>
+              <span>Waiting for players: </span><span class="text-danger font-weight-bold">{{ waitingFor }}</span>
+            </div>
+<!--             <div>
+              <span>Players in room</span><br>
+              <div class="text-success" v-for="player in room.playersInRoom" :key="player.playerId">{{ player.name }}</div>
+            </div> -->
+          </div>
         </div>
         <div>
-          <span>Players in room</span><br>
-          <div class="text-success" v-for="player in room.playersInRoom" :key="player.socketId">{{ player.name }}</div>
+          <div class="infoBoardTitle">
+            <h3>Chat</h3>
+          </div>
+          <div class="chatModal">
+            
+          </div>
         </div>
       </div>
     </div>
@@ -196,14 +208,14 @@ import io from 'socket.io-client';
 const StandardDeck = require('./cardService/deck');
 const Player = require('./game/player');
 
-let playerB = new Player({name: 'Guru'});
-
 export default {
   name: 'App',
   data(){
     return {
       socket: {},
-      room: {},
+      room: {
+        playersInRoom: [],
+      },
       roomJoinCode: undefined,
       playerName: undefined,
       playerId: undefined,
@@ -214,8 +226,7 @@ export default {
       showCreateGame: true,
       showJoinGame: false,
       standardDeck: new StandardDeck(),
-      playerA: new Player({name: 'test'}),
-      playerB: playerB,
+      player: new Player({name: 'test'}),
       shouldGiveCards: true,
       currentPlayer: undefined,
       isCardSelected: false,
@@ -258,15 +269,15 @@ export default {
 
       data.playersInRoom.forEach((player) => {
         if (player.playerId === this.playerId) {
-          this.playerA.cards = player.cards;
-          this.playerA.rankCount();
+          this.player.cards = player.cards;
+          this.player.rankCount();
         }
       });
       this.shouldGiveCards = false;
     });
 
     this.socket.on('player-added', (player) => {
-      this.playerA = new Player({name: player.name});
+      this.player = new Player({name: player.name});
       this.playerId = player.playerId;
       console.log(player);
     });
@@ -324,29 +335,34 @@ export default {
         this.isCardSelected = true;
       },
 
-      takeOpenCard(player){
+      takeOpenCard(){
         if (this.isCardSelected === true) {
-          player.cards.push(this.openCardSelected);
+          this.player.cards.push(this.openCardSelected);
           this.standardDeck.openCards = [];
           this.isCardSelected = false;
-          player.hasTakenCards = true;
-          player.message = "Give card / cards now";
+          this.player.hasTakenCards = true;
+          this.player.message = "Give card / cards now";
+          this.player.rankCount();
+          console.log("player.cards", this.player.cards);
 
           this.socket.emit('deck-updated', {
             roomCode: this.room.id,
             deck: this.standardDeck, 
           });
+
         } else if (this.isCardSelected === false) {
-          player.message = "Select the open card";
+          this.player.message = "Select the open card";
         }
       },
 
-      takeCardFromDeck(player){
+      takeCardFromDeck(){
         let card = this.standardDeck.deck.pop()
-        player.cards.push(card);
-        player.rank = player.rank + card.rank;
-        player.hasTakenCards = true;
-        player.message = "Give card / cards now";
+        this.player.cards.push(card);
+        this.player.hasTakenCards = true;
+        this.player.message = "Give card / cards now";
+
+        this.player.rankCount();
+        console.log("player.cards", this.player.cards);
 
         this.socket.emit('deck-updated', {
           roomCode: this.room.id,
@@ -366,35 +382,39 @@ export default {
         return result;
       },
 
-      giveCard(player){
-        let selectedCardsNumber = player.selectedCards.length;
+      giveCard(){
+
+        let selectedCardsNumber = this.player.selectedCards.length;
 
         //check if player has selected the cards
         if (selectedCardsNumber === 0) {
-          player.message = "Select the cards";
+          this.player.message = "Select the cards";
           return;
         }
 
         // check if the player has taken the cards before
         // if player has not taken card, check if the turn can be skipped
-        if (player.hasTakenCards === false) {
-          if (this.canPlayerSkip(this.standardDeck.openCards, player.selectedCards) === false) {
-            player.message = "No matching open cards. Cannot skip!";
+        if (this.player.hasTakenCards === false) {
+          if (this.canPlayerSkip(this.standardDeck.openCards, this.player.selectedCards) === false) {
+            this.player.message = "No matching open cards. Cannot skip!";
             return;
           }
         }
 
         this.standardDeck.openCards = [];
         for (let iteration = 0; iteration < selectedCardsNumber; iteration++) {
-          let card = player.selectedCards.pop();
+          let card = this.player.selectedCards.pop();
           this.standardDeck.cardsGivenBack.push(card);
           this.standardDeck.openCards.push(card);
-          player.cards.splice(player.cards.indexOf(card), 1);
+          this.player.cards.splice(this.player.cards.indexOf(card), 1);
         }
 
-        player.rankCount();
-        player.hasTakenCards = false;
-        player.message = "";
+        this.player.rankCount();
+        console.log('giveCard', this.player.cards);
+
+        this.player.rankCount();
+        this.player.hasTakenCards = false;
+        this.player.message = "";
 
         this.socket.emit('deck-updated', {
           roomCode: this.room.id,
@@ -406,36 +426,37 @@ export default {
         });
       },
 
-      cardSelect(card, player){
-        if (!player.selectedCards.includes(card)) {
-          player.selectedCards.push(card);
-          player.runRules();
-          if (player.isNumberInSequenceRule || player.isColorSuitAndOrderRule) {
-            player.message = "You can put these cards";
-            player.showGiveCard = true;
+      cardSelect(card){
+        if (!this.player.selectedCards.includes(card)) {
+          this.player.selectedCards.push(card);
+          this.player.runRules();
+          if (this.player.isNumberInSequenceRule || this.player.isColorSuitAndOrderRule) {
+            this.player.message = "You can put these cards";
+            this.player.showGiveCard = true;
           } else {
-            player.message = "You cannot put these cards";
-            player.showGiveCard = false;
+            this.player.message = "You cannot put these cards";
+            this.player.showGiveCard = false;
           }
         }
       },
 
-      clearSelectedCards(player){
-        player.selectedCards = [];
-        player.message = "";
-        player.showGiveCard = true;
+      clearSelectedCards(){
+        this.player.selectedCards = [];
+        this.player.message = "";
+        this.player.showGiveCard = true;
       },
 
-      show(){
-        let rankA = this.playerA.rank;
-        let rankB = this.playerB.rank;
-        if (rankA < rankB) {
-          alert(this.playerA.name + " Won!!");
-        } else {
-          alert(this.playerB.name + " Won!!");
-        }
-        
+      show(){        
       }
+  },
+  computed: {
+    onlinePlayers: function(){
+      return this.room.playersInRoom.filter((player) => { 
+        if (player.playerId !== this.playerId) {
+          return true;
+        }
+      });
+    }
   }
 }
 </script>

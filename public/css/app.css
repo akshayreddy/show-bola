@@ -5,6 +5,10 @@ body{
   color: yellow;
 }
 
+#app{
+  display: grid;
+}
+
 .main{
   display: grid;
   grid-template-rows: 1fr 16fr;
@@ -12,7 +16,7 @@ body{
 
 #start{
   display: grid;
-  grid-template-rows: 1fr 1fr;
+  grid-template-rows: 1fr 10fr;
   -webkit-font-smoothing: antialiased;
   justify-items: center;
 }
@@ -27,6 +31,7 @@ body{
 
 .createGame{
   display: grid;
+  grid-template-rows: 0fr 0fr 0fr 0fr;
   grid-row-gap: 20px;
   width: 30%;
 }
@@ -42,13 +47,14 @@ body{
 
 .joinGame{
   display: grid;
+  grid-template-rows: 0fr 0fr 0fr;
   grid-row-gap: 20px;
   width: 30%;
 }
 
 .arena{
   display: grid;
-  grid-template-rows: 1fr 1fr 1fr;
+  grid-template-rows: 1fr 2fr 2fr;
   width: 98%;
   justify-self: center;
   grid-row-gap: 10px;
@@ -59,12 +65,15 @@ body{
   border-radius: 14px;
 }
 
-.leaderBoard{
+.infoBoard{
+  display: grid;
+  grid-template-rows: 2fr 1fr 2fr;
   background: #233659;
   border-radius: 14px;
   width: 94%;
   justify-self: center;
   text-align: center;
+  font-size: large;
 }
 
 .cardLayout{
@@ -152,4 +161,30 @@ body{
 .cardsByOpponent > .item_2{
   display: grid;
   grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+}
+
+.rules{
+  display: grid;
+  grid-template-rows: 0fr 0fr 0fr;
+  text-align: left;
+  color: aqua;
+}
+
+.roonInfo{
+  display: grid;
+  grid-template-rows: 0fr 0fr;
+  text-align: left;
+  color: aqua;
+}
+
+.players{
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+}
+
+.playersCard{
+  display: grid;
+  background: #233659;
+  border-radius: 14px;
+  text-align: center;
 }
