@@ -23,6 +23,8 @@ class Player {
 		this.playerId = args.playerId;
 		this.timestamp = new Date();
 		this.cards = [];
+		this.cardCount = 0;
+		this.rank = 0;
 	}
 }
 
@@ -145,6 +147,18 @@ io.on('connection', (client) => {
 		io.in(room.id).emit('current-turn', { playerId: room.nextTurn() });
 	});
 
+	// keep track of rank
+	client.on('rank', (data) => {
+		let roomId = data.roomCode;
+		let room = rooms[roomId];
+
+		room.playersInRoom.forEach((player) => {
+			if (player.playerId === data.playerId) {
+				player.rank = data.rank;
+			}
+      	});
+	});
+
 	// changes to the deck
 	client.on('deck-updated', (data) => {
 		let roomId = data.roomCode;
@@ -159,17 +173,40 @@ io.on('connection', (client) => {
 		let room = rooms[roomId];
 		let standardDeck = data.deck;
 		let cardsToGive = 5;
+		let patientCardsCount = [];
 
         for (let interation = 0; interation < cardsToGive; interation++) {
         	room.playersInRoom.forEach((player) => {
-              player.cards.push(standardDeck.deck.pop());
+              	player.cards.push(standardDeck.deck.pop());
           	});
         }
+
+    	room.playersInRoom.forEach((player) => {
+          	patientCardsCount.push({playerId: player.playerId, cardCount: player.cards.length})
+      	});
 
         standardDeck.openCards.push(standardDeck.deck.pop());
 
 		io.in(room.id).emit('take-cards', { 'playersInRoom' : room.playersInRoom} );
 		io.in(room.id).emit('deck-updates', { deck: standardDeck });
+		io.in(room.id).emit('card-updates', patientCardsCount);
+	});
+
+	// cards each player has
+	client.on('card-updates', (data) => {
+		let roomId = data.roomCode;
+		let room = rooms[roomId];
+		let patientCardsCount = [{playerId: data.playerId, cardCount: data.cardCount}];
+
+		io.in(room.id).emit('card-updates', patientCardsCount);
+	});
+
+	// cards each player has
+	client.on('show', (data) => {
+		let roomId = data.roomCode;
+		let room = rooms[roomId];
+
+		io.in(room.id).emit('result', {playerRequested: data.playerId, players:room.playersInRoom});
 	});
 
 });

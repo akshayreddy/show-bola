@@ -47,7 +47,7 @@
           <div class="playersCard" v-for="player in onlinePlayers" :key="player.playerId">
             <div class="playerTitle">
               <div class="playerName">
-                {{ player.name }} has {{ player.cards.length }} cards
+                {{ player.name }} has {{ player.cardCount }} cards
               </div>
             </div>
           </div>
@@ -182,10 +182,6 @@
             <div>
               <span>Waiting for players: </span><span class="text-danger font-weight-bold">{{ waitingFor }}</span>
             </div>
-<!--             <div>
-              <span>Players in room</span><br>
-              <div class="text-success" v-for="player in room.playersInRoom" :key="player.playerId">{{ player.name }}</div>
-            </div> -->
           </div>
         </div>
         <div>
@@ -198,6 +194,13 @@
         </div>
       </div>
     </div>
+    <b-modal v-model="modalShow" hide-footer>
+      <div class="d-block text-center">
+        <h3 class="resultTitle">{{showRequestedBy}} show bola and he {{result}} it!!</h3>
+      </div>
+      <b-button class="mt-3" variant="outline-danger" block @click="playAgain">Play Again</b-button>
+      <b-button class="mt-3" variant="outline-danger" block @click="hideModal">Close</b-button>
+    </b-modal>
   </div>
 </template>
 
@@ -231,15 +234,15 @@ export default {
       currentPlayer: undefined,
       isCardSelected: false,
       openCardSelected: {},
+      modalShow: false,
+      showRequestedBy: undefined,
+      result: undefined,
     };
   },
   created(){
     this.socket = io('http://localhost:3000');
   },
   mounted(){
-    this.socket.on('giveCards', (data) => {
-      console.log(data);
-    });
 
     this.socket.on('room-created', (room) => {
       this.room = room;
@@ -252,13 +255,11 @@ export default {
 
       this.shuffle();
       this.waitingFor = this.room.playersLimit - this.room.playersInRoom.length;
-      console.log('room-created', room);
     });
 
     this.socket.on('room-updates', (room) => {
       this.room = room;
       this.waitingFor = this.room.playersLimit - this.room.playersInRoom.length;
-      console.log('room-updates', room);
     });
 
     this.socket.on('deck-updates', (data) => {
@@ -271,6 +272,11 @@ export default {
         if (player.playerId === this.playerId) {
           this.player.cards = player.cards;
           this.player.rankCount();
+          this.socket.emit('rank', {
+            roomCode: this.room.id,
+            playerId: this.playerId,
+            rank: this.player.rank,
+          });
         }
       });
       this.shouldGiveCards = false;
@@ -279,7 +285,6 @@ export default {
     this.socket.on('player-added', (player) => {
       this.player = new Player({name: player.name});
       this.playerId = player.playerId;
-      console.log(player);
     });
   
     this.socket.on('join-room-error', (data) => {
@@ -288,6 +293,35 @@ export default {
 
     this.socket.on('current-turn', (data) => {
       this.currentPlayer = data.playerId;
+    });
+
+    this.socket.on('card-updates', (data) => {
+      this.room.playersInRoom.forEach((player) => {
+        data.forEach((obj) => {
+          if (player.playerId === obj.playerId) {
+            player.cardCount = obj.cardCount;
+          }
+        })
+      })
+    });
+
+    this.socket.on('result', (data) => {
+
+      let ranksSorted = data.players.sort((playerA, playerB) => (playerA.rank > playerB.rank) ? 1 : -1);
+      console.log("ranksSorted", ranksSorted);
+
+      this.room.playersInRoom.forEach((player) => {
+        if (player.playerId === data.playerRequested) {
+          this.showRequestedBy = player.name;
+          if (player.Id === ranksSorted[0].playerId) {
+            this.result = "won";
+          } else {
+            this.result = "lost";
+          }
+        }
+      })
+
+      console.log("result", );
     });
   },
   methods: {
@@ -424,6 +458,18 @@ export default {
         this.socket.emit('next-turn', {
           roomCode: this.room.id,
         });
+
+        this.socket.emit('rank', {
+          roomCode: this.room.id,
+          playerId: this.playerId,
+          rank: this.player.rank,
+        });
+
+        this.socket.emit('card-updates', {
+          roomCode: this.room.id,
+          playerId: this.playerId,
+          cardCount: this.player.cards.length,
+        });
       },
 
       cardSelect(card){
@@ -446,7 +492,24 @@ export default {
         this.player.showGiveCard = true;
       },
 
-      show(){        
+      show(){    
+        this.socket.emit('show', {
+          roomCode: this.room.id,
+          playerId: this.playerId,
+        });
+        this.showModal();
+      },
+
+      showModal() {
+        this.modalShow = true;
+      },
+
+      hideModal() {
+        this.modalShow = false;
+      },
+
+      playAgain(){
+        console.log('playAgain');
       }
   },
   computed: {

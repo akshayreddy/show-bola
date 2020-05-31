@@ -188,3 +188,7 @@ body{
   border-radius: 14px;
   text-align: center;
 }
+
+.resultTitle {
+  color: red;
+}
