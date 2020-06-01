@@ -192,3 +192,11 @@ body{
 .resultTitle {
   color: red;
 }
+
+.playerCardOnline {
+  background: #235957;
+}
+
+.playerCardOffline {
+  background: #233659;
+}

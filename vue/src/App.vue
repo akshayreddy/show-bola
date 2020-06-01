@@ -44,10 +44,11 @@
     <div id="game" v-show="game">
       <div class="arena">
         <div class="players">
-          <div class="playersCard" v-for="player in onlinePlayers" :key="player.playerId">
+          <div v-for="player in onlinePlayers" :key="player.playerId" 
+              v-bind:class="[currentPlayer == player.playerId ? 'playerCardOnline' : 'playerCardOffline', 'playersCard']">
             <div class="playerTitle">
               <div class="playerName">
-                {{ player.name }} has {{ player.cardCount }} cards
+                <h4>{{ player.name }} has <span class="text-danger">{{ player.cardCount }}</span> cards</h4>
               </div>
             </div>
           </div>
@@ -108,7 +109,7 @@
         <div class="cardLayout">
           <div class="item_1">
             <div class="cardTitle">
-              <h4>{{player.name}}<span v-if="currentPlayer === playerId">, your turn</span> </h4>
+              <h4>{{player.name}}<span v-if="currentPlayer === playerId" class="text-danger">, your turn</span> </h4>
             </div>
             <div>
               <h4>
@@ -123,7 +124,7 @@
               </h4>
             </div>
             <div>
-              <span>{{ player.message }}</span>
+              <h4 class="text-danger">{{ player.message }}</h4>
             </div>
           </div>
           <div class="item_2">
@@ -196,7 +197,7 @@
     </div>
     <b-modal v-model="modalShow" hide-footer>
       <div class="d-block text-center">
-        <h3 class="resultTitle">{{showRequestedBy}} show bola and he {{result}} it!!</h3>
+        <h3 class="resultTitle">{{showRequestedBy}} show bola and {{result}} it!!</h3>
       </div>
       <b-button class="mt-3" variant="outline-danger" block @click="playAgain">Play Again</b-button>
       <b-button class="mt-3" variant="outline-danger" block @click="hideModal">Close</b-button>
@@ -308,20 +309,18 @@ export default {
     this.socket.on('result', (data) => {
 
       let ranksSorted = data.players.sort((playerA, playerB) => (playerA.rank > playerB.rank) ? 1 : -1);
-      console.log("ranksSorted", ranksSorted);
 
       this.room.playersInRoom.forEach((player) => {
         if (player.playerId === data.playerRequested) {
           this.showRequestedBy = player.name;
-          if (player.Id === ranksSorted[0].playerId) {
+          if (player.playerId === ranksSorted[0].playerId) {
             this.result = "won";
           } else {
             this.result = "lost";
           }
         }
-      })
-
-      console.log("result", );
+      });
+      this.showModal();
     });
   },
   methods: {
@@ -377,7 +376,6 @@ export default {
           this.player.hasTakenCards = true;
           this.player.message = "Give card / cards now";
           this.player.rankCount();
-          console.log("player.cards", this.player.cards);
 
           this.socket.emit('deck-updated', {
             roomCode: this.room.id,
@@ -396,7 +394,6 @@ export default {
         this.player.message = "Give card / cards now";
 
         this.player.rankCount();
-        console.log("player.cards", this.player.cards);
 
         this.socket.emit('deck-updated', {
           roomCode: this.room.id,
@@ -444,7 +441,6 @@ export default {
         }
 
         this.player.rankCount();
-        console.log('giveCard', this.player.cards);
 
         this.player.rankCount();
         this.player.hasTakenCards = false;
@@ -497,7 +493,6 @@ export default {
           roomCode: this.room.id,
           playerId: this.playerId,
         });
-        this.showModal();
       },
 
       showModal() {
