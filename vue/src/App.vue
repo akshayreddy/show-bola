@@ -241,7 +241,7 @@ export default {
     };
   },
   created(){
-    this.socket = io('http://localhost:3000');
+    this.socket = io(process.env.IP);
   },
   mounted(){
 
