@@ -10,8 +10,8 @@
           <input placeholder="Your game name" class="form-control" v-model="playerName">
         </div>
         <div>
-          <select class="custom-select" v-model="numberOfPlayers">
-            <option value="null">Number of players</option>
+          <select class="form-control" v-model="numberOfPlayers">
+            <option value="">Number of players</option>
             <option value="2">Two</option>
             <option value="3">Three</option>
             <option value="2">Four</option>
@@ -19,14 +19,14 @@
           </select>
         </div>
         <div>
-          <select class="custom-select" v-model="deckType"> 
-            <option value="null">Deck type</option>
+          <select class="form-control" v-model="deckType"> 
+            <option value="">Deck type</option>
             <option value="standard-single">Standard (52 cards)</option>
             <option value="standard-double">Standard (104 cards)</option>
           </select>
         </div>
         <div>
-          <button class="btn btn-success" @click=createGameRoom()>Create</button>
+          <button class="btn btn-success" v-show="playerName && numberOfPlayers && deckType" @click=createGameRoom()>Create</button>
         </div>
       </div>
       <div v-if="showJoinGame" class="joinGame">
@@ -37,7 +37,7 @@
           <input placeholder="Enter the join code" class="form-control" v-model="roomJoinCode">
         </div>
         <div>
-          <button class="btn btn-success" @click=joinGameRoom()>Join</button>
+          <button class="btn btn-success" @click=joinGameRoom() v-show="playerName && roomJoinCode">Join</button>
         </div>
       </div>
     </div>
@@ -159,16 +159,16 @@
           </div>
           <div class="rules ml-2">
             <div>
-              Player with the lowest score wins!
+              Player with the <span class="text-danger">lowest score</span> wins!
             </div>
             <div>
-              A player can take a card from deck or open cards section.
+              A player can take a card from main deck or open cards section.
             </div>
             <div>
-                A player can skip taking a card when having 
-                <ul>Cards with same number 11, 555.</ul>
-                <ul>Cards with same color, same shape and in sequence. ex 1234, JQK.</ul>
+                A player can <span class="text-danger">skip</span> taking a card when having 
                 <ul>Card with matching number in open cards section</ul>
+                <ul>Cards with same number ex 11, 555.</ul>
+                <ul>Cards with same color, same shape and in sequence. ex 1234, JQK.</ul>
             </div>
           </div>
         </div>
@@ -197,7 +197,10 @@
     </div>
     <b-modal v-model="modalShow" hide-footer>
       <div class="d-block text-center">
-        <h3 class="resultTitle">{{showRequestedBy}} show bola and {{result}} it!!</h3>
+        <h3 class="resultTitle">
+            <span>{{showRequestedBy}} show bola and {{result}} it!!</span>
+            <span>Winner is {{ winner }}</span>
+        </h3>
       </div>
       <b-button class="mt-3" variant="outline-danger" block @click="playAgain">Play Again</b-button>
       <b-button class="mt-3" variant="outline-danger" block @click="hideModal">Close</b-button>
@@ -238,6 +241,7 @@ export default {
       modalShow: false,
       showRequestedBy: undefined,
       result: undefined,
+      winner: undefined,
     };
   },
   created(){
@@ -289,7 +293,7 @@ export default {
     });
   
     this.socket.on('join-room-error', (data) => {
-      console.log(data);
+
     });
 
     this.socket.on('current-turn', (data) => {
@@ -320,6 +324,7 @@ export default {
           }
         }
       });
+      this.winner = ranksSorted[0].name;
       this.showModal();
     });
   },
@@ -504,7 +509,7 @@ export default {
       },
 
       playAgain(){
-        console.log('playAgain');
+
       }
   },
   computed: {
