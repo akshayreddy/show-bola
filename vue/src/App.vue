@@ -7,7 +7,7 @@
       </div>
       <div v-if="showCreateGame" class="createGame">
         <div>
-          <input placeholder="Your game name" class="form-control" v-model="playerName">
+          <input placeholder="Your game name" class="form-control" v-model="playerName" maxlength="8">
         </div>
         <div>
           <select class="form-control" v-model="numberOfPlayers">
@@ -31,7 +31,7 @@
       </div>
       <div v-if="showJoinGame" class="joinGame">
         <div>
-          <input placeholder="Your game name" class="form-control" v-model="playerName">
+          <input placeholder="Your game name" class="form-control" v-model="playerName" maxlength="8">
         </div>
         <div>
           <input placeholder="Enter the join code" class="form-control" v-model="roomJoinCode">
@@ -155,6 +155,19 @@
       <div class="infoBoard">
         <div>
           <div class="infoBoardTitle">
+            <h3>Room</h3>
+          </div>
+          <div class="roonInfo ml-2">
+            <div>
+              <span>Room Join Code: </span> <span class="text-danger font-weight-bold">{{ room.id }}</span>
+            </div>
+          <div>
+            <span>Waiting for players: </span><span class="text-danger font-weight-bold">{{ waitingFor }}</span>
+          </div>
+          </div>
+        </div>
+        <div>
+          <div class="infoBoardTitle">
             <h3>Rules</h3>
           </div>
           <div class="rules ml-2">
@@ -166,31 +179,36 @@
             </div>
             <div>
                 A player can <span class="text-danger">skip</span> taking a card when having 
-                <ul>Card with matching number in open cards section</ul>
-                <ul>Cards with same number ex 11, 555.</ul>
-                <ul>Cards with same color, same shape and in sequence. ex 1234, JQK.</ul>
+                any one card with <span class="text-danger">matching number</span> in open cards section
+            </div>
+              <div>
+                A player can give <span class="text-danger">multiple cards</span> when
+                <ul>Cards have same number ex 11, 555.</ul>
+                <ul>Cards with same color and same shape and are in sequence. ex 1234, JQK.</ul>
             </div>
           </div>
         </div>
-        <div>
-          <div class="infoBoardTitle">
-            <h3>Room</h3>
-          </div>
-          <div class="roonInfo ml-2">
-            <div>
-              <span>Room Join Code: </span> <span class="text-danger font-weight-bold">{{ room.id }}</span>
-            </div>
-            <div>
-              <span>Waiting for players: </span><span class="text-danger font-weight-bold">{{ waitingFor }}</span>
-            </div>
-          </div>
-        </div>
-        <div>
+        <div class="chat">
           <div class="infoBoardTitle">
             <h3>Chat</h3>
           </div>
-          <div class="chatModal">
-            
+          <div class="chatMessages">
+            <div v-for="message in latestMessages" :key="message.playerId" class="messageBox">
+              <div class="messageBy text-left ml-2">
+                {{ message.playerName }}:  
+              </div>
+              <div class="text-left ml-2">
+                {{ message.text }}
+              </div>
+            </div>
+          </div>
+          <div class="sendMessage ml-2">
+            <div>
+              <input v-model="message" class="form-control" placeholder="Enter message" maxlength="18">
+            </div>
+            <div>
+              <button class="btn btn-success btn-small" @click="sendMessage()">Send</button>
+            </div>
           </div>
         </div>
       </div>
@@ -222,6 +240,7 @@ export default {
       socket: {},
       room: {
         playersInRoom: [],
+        messages: [],
       },
       roomJoinCode: undefined,
       playerName: undefined,
@@ -242,6 +261,7 @@ export default {
       showRequestedBy: undefined,
       result: undefined,
       winner: undefined,
+      message: undefined,
     };
   },
   created(){
@@ -292,9 +312,8 @@ export default {
       this.playerId = player.playerId;
     });
   
-    this.socket.on('join-room-error', (data) => {
-
-    });
+    // this.socket.on('join-room-error', (data) => {
+    // });
 
     this.socket.on('current-turn', (data) => {
       this.currentPlayer = data.playerId;
@@ -326,6 +345,10 @@ export default {
       });
       this.winner = ranksSorted[0].name;
       this.showModal();
+    });
+
+    this.socket.on('messages', (data) => {
+      this.room.messages.unshift(data);
     });
   },
   methods: {
@@ -508,6 +531,19 @@ export default {
         this.modalShow = false;
       },
 
+      sendMessage() {
+        if (this.message) {
+          this.socket.emit('send-message', {
+            roomCode: this.room.id,
+            playerId: this.playerId,
+            playerName: this.playerName,
+            message: this.message,
+          });
+
+          this.message = '';
+        }
+      },
+
       playAgain(){
 
       }
@@ -519,6 +555,9 @@ export default {
           return true;
         }
       });
+    },
+    latestMessages: function(){
+      return this.room.messages.slice(0, 8).reverse();
     }
   }
 }

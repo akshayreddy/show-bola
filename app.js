@@ -31,7 +31,8 @@ class Player {
 class Message {
 	constructor(args){
 		this.text = args.text;
-		this.player = args.player;
+		this.playerId = args.playerId;
+		this.playerName = args.playerName;
 		this.timestamp = new Date();
 	}
 }
@@ -207,6 +208,21 @@ io.on('connection', (client) => {
 		let room = rooms[roomId];
 
 		io.in(room.id).emit('result', {playerRequested: data.playerId, players:room.playersInRoom});
+	});
+
+	// cards each player has
+	client.on('send-message', (data) => {
+		let roomId = data.roomCode;
+		let room = rooms[roomId];
+		let message = new Message({
+			text: data.message,
+			playerId: data.playerId,
+			playerName: data.playerName,
+			timestamp: new Date(),
+		});
+
+		room.messages.push(message);
+		io.in(room.id).emit('messages', message);
 	});
 
 });

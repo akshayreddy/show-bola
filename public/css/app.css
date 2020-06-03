@@ -67,7 +67,7 @@ body{
 
 .infoBoard{
   display: grid;
-  grid-template-rows: 2fr 1fr 2fr;
+  grid-template-rows: 0.5fr 2fr 2fr;
   background: #233659;
   border-radius: 14px;
   width: 94%;
@@ -165,7 +165,8 @@ body{
 
 .rules{
   display: grid;
-  grid-template-rows: 0fr 0fr 0fr;
+  grid-template-rows: 0fr 0fr 0fr 0fr;
+  grid-row-gap: 10px;
   text-align: left;
   color: aqua;
 }
@@ -199,4 +200,23 @@ body{
 
 .playerCardOffline {
   background: #233659;
+}
+
+.chat {
+  display: grid;
+  grid-template-rows: 0.5fr 3fr 1fr;
+}
+
+.sendMessage {
+  display: grid;
+  grid-template-columns: 3fr 1fr;
+}
+
+.messageBox {
+  display: grid;
+  grid-template-columns: 1fr 4fr;
+}
+
+.messageBy {
+  color: aqua;
 }
