@@ -225,6 +225,17 @@ io.on('connection', (client) => {
 		io.in(room.id).emit('messages', message);
 	});
 
+	// play again
+	client.on('play-again', (data) => {
+		let roomId = data.roomCode;
+		let room = rooms[roomId];
+		room.hostId = data.playerId;
+		room.playersInRoom.forEach((player) => {
+          	player.cards = [];
+      	});
+		io.in(room.id).emit('play-again', room);
+	});
+
 });
 
 http.listen(port, () => console.log(`Example app listening on port ${port}!`))

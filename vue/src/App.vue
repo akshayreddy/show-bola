@@ -135,7 +135,7 @@
                   <img width="150px" height="150px" viewBox="0 0 150 150" :src="'./media/svg/' + card.value + '_of_'+ card.suit + 's.svg'">
               </div>
             </div>
-            <div class="playerActions" v-show="currentPlayer === playerId">
+            <div class="playerActions" v-show="currentPlayer === playerId && shouldGiveCards === false">
               <div>
                 <button type="button" v-if="player.hasTakenCards === false" class="btn btn-primary" @click="takeOpenCard()">Take open card</button>
               </div>
@@ -213,7 +213,7 @@
         </div>
       </div>
     </div>
-    <b-modal v-model="modalShow" hide-footer>
+    <b-modal v-model="resultModalShow" hide-footer>
       <div class="d-block text-center">
         <h3 class="resultTitle">
             <span>{{showRequestedBy}} show bola and {{result}} it!!</span>
@@ -257,7 +257,7 @@ export default {
       currentPlayer: undefined,
       isCardSelected: false,
       openCardSelected: {},
-      modalShow: false,
+      resultModalShow: false,
       showRequestedBy: undefined,
       result: undefined,
       winner: undefined,
@@ -285,6 +285,9 @@ export default {
     this.socket.on('room-updates', (room) => {
       this.room = room;
       this.waitingFor = this.room.playersLimit - this.room.playersInRoom.length;
+      if (this.waitingFor === 0 && this.currentPlayer === this.playerId) {
+        this.player.message = 'Shuffle and give cards';
+      }
     });
 
     this.socket.on('deck-updates', (data) => {
@@ -350,6 +353,23 @@ export default {
     this.socket.on('messages', (data) => {
       this.room.messages.unshift(data);
     });
+
+    this.socket.on('play-again', (data) => {
+      this.room = data;
+      this.player.cards = [];
+      if (this.room.deckType === 'standard-double') {
+        this.standardDeck = new StandardDeck(2);
+
+      } else {
+        this.standardDeck = new StandardDeck();
+      }
+
+      this.shuffle();
+      this.shouldGiveCards = true;
+      this.resultModalShow = false;
+      this.player.message = "Select the cards";
+
+    });
   },
   methods: {
       shuffle(){
@@ -389,6 +409,7 @@ export default {
           roomCode: this.room.id,
           deck: this.standardDeck, 
         });
+        this.player.message = '';
       },
 
       selectOpenCard(card){
@@ -524,11 +545,11 @@ export default {
       },
 
       showModal() {
-        this.modalShow = true;
+        this.resultModalShow = true;
       },
 
       hideModal() {
-        this.modalShow = false;
+        this.resultModalShow = false;
       },
 
       sendMessage() {
@@ -545,20 +566,23 @@ export default {
       },
 
       playAgain(){
-
+        this.socket.emit('play-again', {
+          roomCode: this.room.id,
+          playerId: this.playerId,
+        });
       }
   },
   computed: {
-    onlinePlayers: function(){
+    onlinePlayers: function() {
       return this.room.playersInRoom.filter((player) => { 
         if (player.playerId !== this.playerId) {
           return true;
         }
       });
     },
-    latestMessages: function(){
+    latestMessages: function() {
       return this.room.messages.slice(0, 8).reverse();
-    }
+    },
   }
 }
 </script>
