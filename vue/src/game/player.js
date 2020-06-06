@@ -21,13 +21,12 @@ class Player {
 	}
 
 	runRules(){
-		console.log('runRules');
 		this.isNumberInSequenceRule = this.sameNumberSequence();
 		this.isColorSuitAndOrderRule = this.sameColorSuitAndOrder();
 	}
 
 	sameNumberSequence(){
-		return this.selectedCards.every( (val, i, arr) => val.value === arr[0].value);
+		return this.selectedCards.every( (val, i, arr) => val.enum === arr[0].enum);
 	}
 
 	sameColorSequence(){
