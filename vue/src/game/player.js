@@ -40,7 +40,7 @@ class Player {
 	numbersInOrder(){
 		let enums = this.selectedCards.map(card => card.enum);
 		let inOrder = false;
-		let sortedEnums = enums.sort();
+		let sortedEnums = enums.sort((a,b) => a - b);
 		for (let i = 0; i <= sortedEnums.length - 2; i++) {
 			if(sortedEnums[i] === (sortedEnums[i+1] - 1)){
 				inOrder = true;
