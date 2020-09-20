@@ -61,12 +61,12 @@
             <div class="deckAction">
               <div>
                 <button type="button" class="btn btn-primary" 
-                v-if="waitingFor === 0 && room.hostId === playerId && showShuffle" 
+                v-if="waitingFor === 0 && room.hostId === playerId && shouldGiveCards" 
                 @click="giveCards">Give cards</button>
               </div>
               <div>
                 <button type="button" class="btn btn-primary" 
-                v-if="waitingFor === 0 && room.hostId === playerId && showShuffle" 
+                v-if="waitingFor === 0 && room.hostId === playerId && shouldGiveCards" 
                 @click="shuffle">Shuffle</button>
               </div>
             </div>
@@ -135,18 +135,18 @@
                   <img width="150px" height="150px" viewBox="0 0 150 150" :src="'./media/svg/' + card.value + '_of_'+ card.suit + 's.svg'">
               </div>
             </div>
-            <div class="playerActions" v-show="currentPlayer === playerId">
+            <div class="playerActions" v-show="currentPlayer === playerId && shouldGiveCards === false">
               <div>
-                <button type="button" v-if="player.hasToTakeCards === true" class="btn btn-primary" @click="takeOpenCard()">Take open card</button>
+                <button type="button" v-if="player.hasTakenCards === false" class="btn btn-primary" @click="takeOpenCard()">Take open card</button>
               </div>
               <div>
-                <button type="button" v-if="player.hasToTakeCards === true" class="btn btn-primary" @click="takeCardFromDeck()">Take deck card</button>
+                <button type="button" v-if="player.hasTakenCards === false" class="btn btn-primary" @click="takeCardFromDeck()">Take deck card</button>
               </div>
               <div>
                 <button type="button" v-if="player.showGiveCard === true" class="btn btn-primary" @click="giveCard()">Give Cards</button>
               </div>
               <div>
-                <button type="button" v-if="player.showGiveCard === true" class="btn btn-danger" @click="show()">Show</button>
+                <button type="button" class="btn btn-danger" @click="show()">Show</button>
               </div>
             </div>
           </div>
@@ -253,7 +253,7 @@ export default {
       showJoinGame: false,
       standardDeck: new StandardDeck(),
       player: new Player({name: 'test'}),
-      showShuffle: true,
+      shouldGiveCards: true,
       currentPlayer: undefined,
       isCardSelected: false,
       openCardSelected: {},
@@ -307,7 +307,7 @@ export default {
           });
         }
       });
-      this.showShuffle = false;
+      this.shouldGiveCards = false;
     });
 
     this.socket.on('player-added', (player) => {
@@ -365,7 +365,7 @@ export default {
       }
 
       this.shuffle();
-      this.showShuffle = true;
+      this.shouldGiveCards = true;
       this.resultModalShow = false;
       this.player.message = "Select the cards";
 
@@ -413,39 +413,23 @@ export default {
       },
 
       selectOpenCard(card){
-        // check if the player is choosing the discarded card
-        let hasDiscardedCards = this.player.discardedCards.filter(discardedCard => {
-          if (discardedCard.color === card.color && discardedCard.name === card.name) {
-            return true;
-          }
-        });
-
-        if (hasDiscardedCards.length > 0) {
-          this.player.message = "Cannot select recent discarded card";
-          return;
-        } else {
-          this.player.message = "Card selected";
-        }
-
         this.openCardSelected = card;
         this.isCardSelected = true;
       },
 
       takeOpenCard(){
-
         if (this.isCardSelected === true) {
           this.player.cards.push(this.openCardSelected);
           this.standardDeck.openCards = [];
           this.isCardSelected = false;
-          this.player.hasToTakeCards = false;
+          this.player.hasTakenCards = true;
+          this.player.message = "Give card / cards now";
           this.player.rankCount();
 
           this.socket.emit('deck-updated', {
             roomCode: this.room.id,
             deck: this.standardDeck, 
           });
-
-          this.skipTurn();
 
         } else if (this.isCardSelected === false) {
           this.player.message = "Select the open card";
@@ -455,7 +439,7 @@ export default {
       takeCardFromDeck(){
         let card = this.standardDeck.deck.pop()
         this.player.cards.push(card);
-        this.player.hasToTakeCards = false;
+        this.player.hasTakenCards = true;
         this.player.message = "Give card / cards now";
 
         this.player.rankCount();
@@ -464,9 +448,6 @@ export default {
           roomCode: this.room.id,
           deck: this.standardDeck, 
         });
-
-        this.skipTurn();
-
       },
 
       canPlayerSkip(openCards, selectedCards){
@@ -491,57 +472,34 @@ export default {
           return;
         }
 
-        // check if the turn can be skipped
-        if (this.canPlayerSkip(this.standardDeck.openCards, this.player.selectedCards) === true) {
-          this.player.hasToTakeCards = false; // no need to take cards
-        } else {
-          this.player.hasToTakeCards = true;
+        // check if the player has taken the cards before
+        // if player has not taken card, check if the turn can be skipped
+        if (this.player.hasTakenCards === false) {
+          if (this.canPlayerSkip(this.standardDeck.openCards, this.player.selectedCards) === false) {
+            this.player.message = "No matching open cards. Cannot skip!";
+            return;
+          }
         }
 
-        this.player.discardedCards = [];
-
+        this.standardDeck.openCards = [];
         for (let iteration = 0; iteration < selectedCardsNumber; iteration++) {
           let card = this.player.selectedCards.pop();
           this.standardDeck.cardsGivenBack.push(card);
           this.standardDeck.openCards.push(card);
-          this.player.discardedCards.push(card);
           this.player.cards.splice(this.player.cards.indexOf(card), 1);
         }
 
         this.player.rankCount();
-        this.player.message = "";
 
-        this.player.showGiveCard = false;
+        this.player.rankCount();
+        this.player.hasTakenCards = false;
+        this.player.message = "";
 
         this.socket.emit('deck-updated', {
           roomCode: this.room.id,
           deck: this.standardDeck, 
         });
 
-        if (this.player.hasToTakeCards === false) {
-          this.skipTurn();
-          this.player.message = "Your turn is skipped";
-        } else {
-
-          this.socket.emit('rank', {
-            roomCode: this.room.id,
-            playerId: this.playerId,
-            rank: this.player.rank,
-          });
-
-          this.socket.emit('card-updates', {
-            roomCode: this.room.id,
-            playerId: this.playerId,
-            cardCount: this.player.cards.length,
-          });
-
-          this.player.message = "Your have to pick a (Open or Deck) card";
-        }
-
-
-      },
-
-      skipTurn() {
         this.socket.emit('next-turn', {
           roomCode: this.room.id,
         });
@@ -557,12 +515,9 @@ export default {
           playerId: this.playerId,
           cardCount: this.player.cards.length,
         });
-
-        this.player.showGiveCard = true;
       },
 
       cardSelect(card){
-
         if (!this.player.selectedCards.includes(card)) {
           this.player.selectedCards.push(card);
           this.player.runRules();

@@ -5,9 +5,8 @@ class Player {
 		this.cards = [];
 		this.rank = 0;
 		this.selectedCards = [];
-		this.discardedCards = [];
 		this.message = 'take open card / give card(s)';
-		this.hasToTakeCards = false;
+		this.hasTakenCards = false;
 		this.showGiveCard = true;
 		this.isNumberInSequenceRule = false;
 		this.isColorSuitAndOrderRule = false;
